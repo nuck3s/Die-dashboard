@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DiE · Player stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Hanken+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EDF2F6; --surface:#FFFFFF; --soft:#DCE6ED; --ink:#14212F; --muted:#445564; --line:#C3CFD8;
+  --power:#14739A; --htp:#C26F00; --up:#237A4F; --down:#B03636; --accent:#1B6D8E; --on-accent:#FFFFFF;
+  --focus:#1B6D8E;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Hanken Grotesk","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#0E1821; --surface:#15232F; --soft:#1C2E3C; --ink:#E5ECF1; --muted:#95A7B6; --line:#263745;
+  --power:#62B8DB; --htp:#E5A94F; --up:#5CC48F; --down:#EC8585; --accent:#62B8DB; --on-accent:#0E1821; --focus:#62B8DB;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.wrap{max-width:980px;margin:0 auto;padding:0 14px 48px}
+header.top{padding:18px 0 10px}
+h1{font:700 27px/1.1 var(--display);letter-spacing:-.01em;margin:0 0 4px}
+.sub{color:var(--muted);margin:0;font-size:15px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:9px;font-weight:600;font-size:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent}
+.btn[hidden]{display:none}
+.admin{display:none!important}
+.strip{margin:14px 0 4px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;color:var(--muted)}
+.strip b{color:var(--ink);font-weight:650}
+details.alliance{margin:10px 0 0;border-bottom:1px solid var(--line);padding-bottom:10px}
+details.alliance summary{cursor:pointer;font-weight:650;padding:6px 0}
+.charts2{display:grid;gap:14px;grid-template-columns:1fr;margin-top:6px}
+@media(min-width:720px){.charts2{grid-template-columns:1fr 1fr}}
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0 8px;border-bottom:1px solid var(--line);margin-top:6px}
+.search{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.selrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.selrow label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:2px;flex:1 1 140px}
+select,.field{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 10px;font-size:15px}
+.legend{display:flex;gap:16px;font-size:14px;color:var(--muted);margin:10px 0 4px;align-items:center;flex-wrap:wrap}
+.sw{display:inline-block;width:12px;height:6px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.sw.p{background:var(--power)} .sw.h{background:var(--htp)}
+ol.list{list-style:none;margin:0;padding:0}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.rowhead{all:unset;display:grid;width:100%;box-sizing:border-box;cursor:pointer;padding:13px 14px;gap:8px 14px;
+  grid-template-columns:34px 1fr 1fr;grid-template-areas:"rk nm nm" ". pw hm"}
+.rowhead:focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:8px}
+@media(min-width:720px){
+  .rowhead{grid-template-columns:36px minmax(170px,1.1fr) 1fr 1fr 18px;grid-template-areas:"rk nm pw hm ch";align-items:center}
+}
+.rk{grid-area:rk;font:700 12px/1 var(--display);border:1.5px solid var(--line);border-radius:6px;padding:5px 0;text-align:center;align-self:start;color:var(--muted)}
+.rk.r5{border-color:var(--ink);color:var(--ink)} .rk.r4{border-color:var(--power);color:var(--power)}
+.nm{grid-area:nm;font-weight:700;font-size:17px;overflow-wrap:anywhere;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:12.5px;font-weight:600;background:var(--soft);color:var(--muted);border-radius:999px;padding:2px 9px}
+.badge.gap{background:color-mix(in srgb,var(--down) 14%,transparent);color:var(--ink)}
+.badge.warn{background:color-mix(in srgb,var(--htp) 18%,transparent);color:var(--ink)}
+.cell{display:flex;flex-direction:column;gap:5px;min-width:0}
+.cell.pw{grid-area:pw}.cell.hm{grid-area:hm}
+.val{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.val b{font-weight:700;font-size:16.5px}
+.val .na{color:var(--muted);font-size:14px}
+.dl{font-style:normal;font-size:13.5px;font-weight:700}
+.dl.up{color:var(--up)} .dl.down{color:var(--down)} .dl.flat{color:var(--muted)}
+.barrow{display:flex;align-items:center;gap:8px}
+.barrow .bar{flex:1;min-width:0}
+svg.spark{flex:0 0 58px;width:58px;height:22px;overflow:visible}
+@media(min-width:720px){svg.spark{flex-basis:72px;width:72px}}
+.bar{height:9px;border-radius:4px;background:var(--soft);overflow:hidden}
+.bar>span{display:block;height:100%;border-radius:4px}
+.cell.pw .bar>span{background:var(--power)} .cell.hm .bar>span{background:var(--htp)}
+.chev{grid-area:ch;display:none;color:var(--muted);transition:transform .15s}
+@media(min-width:720px){.chev{display:block}}
+.row.open .chev{transform:rotate(180deg)}
+.detail{display:none;padding:2px 14px 18px 14px;border-top:1px solid var(--line)}
+.row.open .detail{display:block}
+.detail h3{font:650 14px/1.2 var(--body);margin:16px 0 6px;color:var(--muted)}
+.mini{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:720px){.mini{grid-template-columns:1fr 1fr}}
+svg.chart{width:100%;height:auto;display:block;overflow:visible}
+svg.chart text{font:600 10.5px var(--body);fill:var(--muted)}
+svg.chart text.v{fill:var(--ink)}
+svg.chart .axis{stroke:var(--line);stroke-width:1}
+table.hist{width:100%;border-collapse:collapse;font-size:14px}
+table.hist th,table.hist td{text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)}
+table.hist th:first-child,table.hist td:first-child{text-align:left}
+table.hist th{font-weight:600;color:var(--muted);font-size:12.5px}
+.entry{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.entry label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:2px;flex:1 1 110px}
+.entry .field{width:100%}
+.aliasrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px;margin:4px 0}
+.muted{color:var(--muted)}
+.empty{padding:28px 0;color:var(--muted);text-align:center}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,calc(100vw - 20px));max-height:calc(100vh - 24px)}
+dialog::backdrop{background:rgba(10,20,30,.55)}
+.dlg{padding:16px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 24px);overflow:auto}
+.dlg h2{font:700 20px/1.1 var(--display);margin:0}
+.tabs{display:flex;gap:6px}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;font-weight:600;font-size:14px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+textarea.field{width:100%;min-height:150px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.grid{max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.g-row{display:grid;grid-template-columns:1fr 92px 92px;gap:8px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--line);font-size:14px}
+.g-row.head{position:sticky;top:0;background:var(--surface);font-weight:600;color:var(--muted);font-size:12.5px;z-index:1}
+.g-row input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+.dlgbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.err{color:var(--down);font-size:13.5px;white-space:pre-wrap}
+.hint{font-size:13px;color:var(--muted)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:50;max-width:92vw}
+#toast[hidden]{display:none}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>DiE · Player stats</h1>
+    <p class="sub" id="asof"></p>
+    <div class="actions">
+      <button class="btn primary admin" id="btnNew" type="button" hidden>New snapshot</button>
+      <button class="btn admin" id="btnExport" type="button" hidden>Export CSV</button>
+      <button class="btn ghost" id="btnTheme" type="button">Dark mode</button>
+    </div>
+  </header>
+
+  <div class="strip" id="strip"></div>
+
+  <details class="alliance" id="alliance">
+    <summary>Alliance progress</summary>
+    <div id="allianceBody"></div>
+  </details>
+
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="Search a player (current or former name)" autocomplete="off" aria-label="Search a player">
+    <div class="chips" id="chips" role="group" aria-label="Filter by rank"></div>
+    <div class="selrow">
+      <label>Sort by
+        <select id="sort">
+          <option value="power">Power</option>
+          <option value="htp">Higher march</option>
+          <option value="ratio">Higher march / power</option>
+          <option value="dpower">Power change</option>
+          <option value="dhtp">Higher march change</option>
+          <option value="name">Name</option>
+        </select>
+      </label>
+      <label class="admin">Coaching view
+        <select id="gap">
+          <option value="off">Off</option>
+          <option value="headroom">Coaching priority (most potential to gain)</option>
+          <option value="share">Weakest higher march relative to power</option>
+        </select>
+      </label>
+      <label id="gapNWrap" class="admin" hidden>Show
+        <select id="gapN">
+          <option value="10">Top 10</option>
+          <option value="20" selected>Top 20</option>
+          <option value="30">Top 30</option>
+          <option value="0">All</option>
+        </select>
+      </label>
+      <label>Values as of
+        <select id="viewDate"></select>
+      </label>
+      <label>Change since
+        <select id="cmpDate"></select>
+      </label>
+    </div>
+  </div>
+
+  <div class="legend" aria-hidden="true">
+    <span><i class="sw p"></i>Power</span>
+    <span><i class="sw h"></i>Higher march (Highest Team Power)</span>
+    <span id="count"></span>
+  </div>
+  <ol class="list" id="list"></ol>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <div class="dlg">
+    <h2 id="dlgTitle">New snapshot</h2>
+    <label class="hint" style="display:flex;flex-direction:column;gap:4px">Snapshot date
+      <input class="field" type="date" id="dDate" style="max-width:200px">
+    </label>
+    <div class="tabs" role="tablist">
+      <button class="tab" type="button" role="tab" data-tab="paste" aria-selected="true">Paste lines</button>
+      <button class="tab" type="button" role="tab" data-tab="grid" aria-selected="false">Table</button>
+    </div>
+    <div id="tabPaste">
+      <label class="hint" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">Pasted data
+        <select id="dMode" style="max-width:300px">
+          <option value="both">Name ; power ; higher march</option>
+          <option value="power">Name ; power</option>
+          <option value="htp">Name ; higher march</option>
+        </select>
+      </label>
+      <textarea class="field" id="dText" placeholder="Raveneyes ; 365.10 ; 130.2&#10;Baby Dragon ; 380 ; 136.5" aria-label="Snapshot lines"></textarea>
+      <p class="hint">One player per line. Separators: semicolon, tab or vertical bar. Values in millions (M); a B suffix is accepted.</p>
+      <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="dCreate"> Create unrecognised players</label>
+    </div>
+    <div id="tabGrid" hidden>
+      <div class="grid" id="gridBody"></div>
+      <p class="hint">Only filled cells are saved. The last known value is shown greyed out.</p>
+    </div>
+    <div class="err" id="dErr" role="alert"></div>
+    <div class="dlgbtns">
+      <button class="btn ghost" type="button" id="dCancel">Cancel</button>
+      <button class="btn primary" type="button" id="dSave">Save snapshot</button>
+    </div>
+  </div>
+</dialog>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+"use strict";
+/* ---------- Données de départ (relevés des 4 et 6 oct.) — snapshot du 8 oct. plus bas ----------
+   [nom, rang, puissance (M) au 06/10/2026, higher march (M) au 04/10/2026, options]
+   options.m    : ce nom est un ancien/nouveau nom d'un autre joueur (fusion par défaut)
+   options.hint : fusion possible, à confirmer                                           */
+const POWER_DATE = "2026-10-06";
+const HTP_DATE   = "2026-10-04";
+const RAW = [
+["Drako Noctis",5,200.76,73.24],
+["Baby Dragon",4,377.25,135.37],["Raveneyes",4,362.95,128.32],["Julie",4,329.04,108.23],
+["Dead Frog",4,276.80,null],["Froggy is Back",4,null,73.75,{m:"Dead Frog"}],
+["Luz",4,270.57,77.78],["Marik",4,266.26,76.37],
+["nuckes",4,248.77,null],["ducky nuckes",4,null,79.86,{m:"nuckes"}],
+["☾✧Moondance✧☾",4,233.86,64.32],["Kirke Fox",4,193.90,67.37],["Kaiser",4,187.65,48.85],
+["Tekkno",3,298.56,113.94],["Scylla",3,295.57,null],["404",3,282.47,86.91,{left:true}],["xyzzy",3,280.61,107.17],
+["silver mouse",3,264.84,63.98],["BEER",3,258.51,null],["BEER [NO BEER]",3,null,65.36,{m:"BEER"}],
+["Blacky 1971",3,254.94,60.44],["FraG",3,246.84,69.86],["full squirrel",3,227.89,72.57],["Bunny Smile",3,226.10,61.50],
+["×°Golden Aerie°•",3,221.89,48.23],["NO ANA",3,221.08,null],["KaKtUs",3,215.95,52.87],["Møñà",3,215.31,59.90],
+["Hermione Granger",3,214.27,39.93],["Jey",3,214.01,60.01],["Wolfie",3,211.27,58.16],["Sneak",3,206.53,71.79],
+["-Little pig-",3,200.82,50.88],["Vadik.Step",3,199.43,65.88],["Winter Flower",3,197.02,56.76],["Herminin Ysélys",3,196.22,46.58],
+["NO COW (TOTORO)",3,190.44,null,{m:"Totoro"}],["NO TOTORO (COW)",3,null,65.73,{m:"NO COW (TOTORO)"}],
+["apoLLo",3,188.81,62.46],["Bonbona",3,178.12,43.06],["kiler",3,170.80,37.90],["full turtle",3,170.05,49.18],
+["xOxOx",3,155.70,36.38],["$L@YeR",3,153.26,39.97],["SEMB",3,143.01,27.16],
+["Holy Cow !",3,null,99.85,{m:"Scylla"}],["NO RACCOON",3,null,59.38,{m:"NO ANA"}],
+["Ancient One",2,327.25,82.69],["Kai♡",2,320.84,91.51],["Gallus",2,265.76,67.14],["Stas",2,262.12,52.53],
+["Yoko [c Lessing]",2,254.02,null,{m:"Yoko без Lessing"}],["=RUSSIAN ANGEL=",2,251.87,59.39],["Sky Drágø",2,250.20,65.83],["CRACK",2,243.06,66.21],
+["Lia®WarriorBunny",2,241.73,74.90],["Мали[Пупочек]",2,239.38,65.81,{m:"Душнила.com"}],["Ponds",2,237.74,66.38],["Djafer",2,237.65,60.86],
+["Frigmo",2,237.60,50.77],["KeegleBalls",2,235.80,null],["SteRal040",2,232.67,55.74],["Aria",2,228.30,53.00],
+["MissSwiss",2,225.42,44.67],["Türker",2,221.15,60.17],["Gojo",2,220.56,62.45],["donbobby",2,217.83,66.79],
+["Megan",2,208.70,66.07],["loritz8",2,207.00,48.35],["Kitsune Fox",2,205.81,56.11],["Roni Grangerbee",2,202.28,42.91],
+["babbo112",2,200.72,49.16],["f. sultân mehmet",2,198.50,63.07],["TheWhimp",2,195.43,39.69],["Justice",2,195.49,61.33],
+["BigBossLedy",2,194.95,30.68],["DEADP♥♥L",2,185.99,53.29],["Coni",2,182.42,41.48],["Vespera",2,181.45,46.32],
+["NEMESIS (stylised name)",2,181.07,50.47],["سیکندر",2,180.21,60.54],["Bachi",2,179.27,36.84],["Aizek",2,179.14,42.47],
+["TiTaN",2,178.84,44.86],["Marrrrria",2,176.85,37.21],["Effe",2,176.56,49.47],["monk",2,176.01,45.48],
+["Blonde",2,169.57,50.12],["Purgatory",2,164.98,54.10],["Twoflower",2,162.90,37.07],["Christina",2,161.35,44.13],
+["Per$iano",2,159.64,48.91],["Voreto33",2,156.13,38.39],["ALJ53",2,149.84,39.66],["Yagami Light",2,149.69,36.54],
+["Ratul",2,149.14,44.83],["Devcon",2,148.67,32.01],["Blacksabat",2,148.48,31.85],["Sokratis",2,140.44,26.21],
+["Raging Bull",2,138.80,39.44],["skylar",2,131.80,42.96],["welshdragon71",2,129.94,30.49],["EDI 335",2,124.65,28.53],
+["Axiom",2,120.72,52.07],
+["Micoco",1,195.05,null],["lordargent",1,137.91,null],
+["Yoko без Lessing",2,null,null],["Душнила.com",2,null,null],["Totoro",3,null,null],["DrakoX",2,null,null]
+];
+const RANK_NAMES = {5:"Commander",4:"Bannered",3:"Knight",2:"Squire",1:"Page"};
+
+/* ---------- Modèle ---------- */
+const players = [], nameToId = {}, BASE_MERGES = {};
+const baseSnaps = {}; baseSnaps[POWER_DATE] = {power:{},htp:{}}; baseSnaps[HTP_DATE] = baseSnaps[HTP_DATE] || {power:{},htp:{}};
+RAW.forEach((r,i)=>{
+  const id = "p"+i, o = r[4]||{};
+  players.push({id,name:r[0],rank:r[1],hint:o.hint||null,left:!!o.left});
+  nameToId[r[0]] = id;
+  if(r[2]!=null) baseSnaps[POWER_DATE].power[id] = r[2];
+  if(r[3]!=null) baseSnaps[HTP_DATE].htp[id] = r[3];
+});
+RAW.forEach((r,i)=>{ const o=r[4]||{}; if(o.m) BASE_MERGES["p"+i] = nameToId[o.m]; });
+
+/* Snapshot du 8 oct. 2026 : [nom, puissance (M), higher march (M)]  — null = non visible dans la vidéo */
+const SNAP_DATE = "2026-10-08";
+const SNAP = [
+["Drako Noctis",207.73,74.21],["Baby Dragon",380.61,135.36],["Raveneyes",365.11,131.78],["Julie",336.05,111.38],["Dead Frog",278.56,75.51],
+["Luz",277.46,79.48],["Marik",274.18,79.98],["nuckes",252.76,81.91],["☾✧Moondance✧☾",240.55,65.88],["Kirke Fox",197.53,68.87],["Kaiser",190.77,49.52],
+["Tekkno",319.16,114.44],["Scylla",299.62,102.28],["xyzzy",287.60,108.82],["silver mouse",270.05,65.47],["Blacky 1971",263.01,60.88],
+["BEER",258.35,65.79],["FraG",251.59,70.67],["Bunny Smile",230.28,62.50],["full squirrel",229.19,74.65],["×°Golden Aerie°•",225.67,49.91],
+["NO ANA",225.34,60.72],["KaKtUs",222.30,54.16],["Møñà",221.13,61.11],["Jey",219.23,60.67],["Hermione Granger",214.79,40.42],
+["Wolfie",213.02,60.22],["Sneak",210.70,74.38],["-Little pig-",205.14,52.88],["Vadik.Step",203.32,66.74],["Herminin Ysélys",202.54,47.61],
+["Winter Flower",199.04,58.65],["Totoro",195.79,67.48],["apoLLo",194.16,64.48],["Bonbona",181.38,44.49],["full turtle",175.56,50.34],
+["kiler",174.97,38.96],["xOxOx",159.80,38.09],["$L@YeR",155.96,42.52],["SEMB",143.62,27.43],
+["Ancient One",328.97,83.86],["Kai♡",325.80,95.77],["Stas",268.42,78.90],["Gallus",268.31,67.95],["Yoko без Lessing",257.23,68.99],
+["Sky Drágø",252.09,66.92],["=RUSSIAN ANGEL=",252.03,59.73],["Lia®WarriorBunny",246.68,76.09],["CRACK",246.46,66.81],["Душнила.com",243.99,66.55],
+["Frigmo",243.63,51.79],["Djafer",242.99,61.72],["Ponds",242.63,67.95],["SteRal040",238.02,55.95],["KeegleBalls",236.13,63.99],
+["Aria",229.68,53.52],["MissSwiss",227.55,46.83],["Türker",225.96,61.25],["Gojo",223.28,63.17],["donbobby",218.76,67.89],
+["Megan",216.83,67.24],["Kitsune Fox",208.71,56.91],["loritz8",208.00,49.93],["DrakoX",207.65,60.90],["f. sultân mehmet",206.40,63.96],
+["Roni Grangerbee",203.87,43.63],["babbo112",201.70,49.69],["Justice",199.12,62.84],["BigBossLedy",195.77,31.09],["TheWhimp",195.75,40.32],
+["DEADP♥♥L",190.31,53.87],["Vespera",187.16,48.70],["Coni",184.84,41.69],["Aizek",183.56,42.96],["TiTaN",182.28,45.35],
+["NEMESIS (stylised name)",182.26,50.80],["سیکندر",180.92,54.56],["Bachi",180.09,37.15],["Marrrrria",177.27,37.81],["Effe",177.07,51.70],
+["monk",176.72,46.22],["Blonde",170.51,51.49],["Purgatory",167.42,57.13],["Twoflower",164.80,37.69],["Per$iano",163.61,49.54],
+["Christina",163.08,43.96],["Voreto33",156.81,39.21],["ALJ53",150.70,39.94],["Devcon",150.49,34.07],["Yagami Light",150.27,37.11],
+["Ratul",149.95,45.56],["Blacksabat",149.37,32.65],["Sokratis",141.26,26.57],["Raging Bull",140.16,40.31],["skylar",133.15,45.27],
+["welshdragon71",130.98,30.84],["EDI 335",125.87,30.49],["Axiom",122.59,52.26],["Micoco",191.91,36.66],["lordargent",141.53,24.50]
+];
+baseSnaps[SNAP_DATE] = {power:{},htp:{}};
+SNAP.forEach(r=>{ const id=nameToId[r[0]]; if(!id){ console.warn("Unknown snapshot name",r[0]); return; } if(r[1]!=null) baseSnaps[SNAP_DATE].power[id]=r[1]; if(r[2]!=null) baseSnaps[SNAP_DATE].htp[id]=r[2]; });
+
+
+let user = {snaps:{}, merges:{}, extra:[]};   // ce que l'utilisateur ajoute
+let ui = {q:"", rank:0, sort:"power", gap:"off", gapN:20, view:"latest", cmp:"prev", open:null};
+let M = null; // modèle calculé
+let db = null, dbRef = null, downloads = null, saveTimer = null, saveChain = Promise.resolve();
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmt(v){ if(v==null) return "—"; return v>=1000 ? nf.format(v/1000)+" B" : nf.format(v)+" M"; }
+function fmtD(d){ if(d==null) return "—"; const s = nf.format(Math.abs(d)); return (d>0?"+":d<0?"−":"±")+s; }
+function fmtDate(d,long){ const dt=new Date(d+"T00:00:00"); return dt.toLocaleDateString("en-US",long?{day:"numeric",month:"long",year:"numeric"}:{day:"numeric",month:"short"}); }
+function norm(s){ return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\[die\]/g,"").replace(/[^\p{L}\p{N}]+/gu,""); }
+function parseVal(s){ const m = String(s).trim().replace(/\s/g,"").match(/^(\d+(?:[.,]\d+)?)([kKmMbB])?$/); if(!m) return null; let v=parseFloat(m[1].replace(",",".")); const u=(m[2]||"M").toUpperCase(); if(u==="B") v*=1000; if(u==="K") v/=1000; return (v>0&&v<1e6)?Math.round(v*100)/100:null; }
+function todayISO(){ const d=new Date(); const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+function allPlayers(){ return players.concat(user.extra||[]); }
+function effMerges(){ const m = Object.assign({},BASE_MERGES); for(const k in (user.merges||{})){ if(user.merges[k]==null) delete m[k]; else m[k]=user.merges[k]; } return m; }
+
+function build(){
+  const merges = effMerges();
+  const resolve = id => { let g=0; while(merges[id] && g++<6) id=merges[id]; return id; };
+  const snaps = {};
+  const dset = new Set([...Object.keys(baseSnaps),...Object.keys(user.snaps||{})]);
+  dset.forEach(d=>{
+    const b=baseSnaps[d]||{}, u=(user.snaps||{})[d]||{};
+    snaps[d] = {power:Object.assign({},b.power||{},u.power||{}), htp:Object.assign({},b.htp||{},u.htp||{})};
+  });
+  const dates = Object.keys(snaps).sort();
+  const series = {}, aliases = {};
+  const all = allPlayers(), byId = {};
+  all.forEach(p=>{ byId[p.id]=p; });
+  all.forEach(p=>{ series[p.id]={power:[],htp:[]}; });
+  Object.keys(merges).forEach(src=>{ const t=resolve(src); if(byId[src]&&byId[t]&&t!==src){ (aliases[t]=aliases[t]||[]).push(src); } });
+  dates.forEach(d=>["power","htp"].forEach(k=>{
+    const obj=snaps[d][k], tmp={};
+    Object.keys(obj).forEach(id=>{ const t=resolve(id); if(t!==id && tmp[t]===undefined && byId[t]) tmp[t]=obj[id]; });
+    Object.keys(obj).forEach(id=>{ if(resolve(id)===id && byId[id]) tmp[id]=obj[id]; });
+    Object.keys(tmp).forEach(t=>series[t][k].push({d,v:tmp[t]}));
+  }));
+  const visible = all.filter(p=>!merges[p.id]&&!p.left);
+  const former = all.filter(p=>!merges[p.id]&&p.left);
+  const names = {};
+  all.forEach(p=>{ names[norm(p.name)] = resolve(p.id); });
+  const dk = {power:dates.filter(d=>Object.keys(snaps[d].power).length), htp:dates.filter(d=>Object.keys(snaps[d].htp).length)};
+  return {snaps,dates,series,aliases,visible,former,byId,names,resolve,merges,dk};
+}
+function touch(){ M = build(); }
+
+function pointAt(pts,date){ let r=null; for(const p of pts){ if(p.d<=date) r=p; else break; } return r; }
+function metric(id,k,viewD,cmp){
+  const pts = M.series[id][k]; const last = pointAt(pts,viewD);
+  let prev=null;
+  if(last){
+    if(cmp==="prev"){ const before=pts.filter(p=>p.d<last.d); prev=before[before.length-1]||null; }
+    else prev = pointAt(pts,cmp);
+  }
+  return {v:last?last.v:null, d:last?last.d:null, delta:(last&&prev&&prev.d<last.d)?last.v-prev.v:null, pd:prev?prev.d:null};
+}
+function viewDate(){ return ui.view==="latest" ? "9999-12-31" : ui.view; }
+
+/* ---------- Rendu ---------- */
+function rows(list){
+  const vd=viewDate();
+  return (list||M.visible).map(p=>({p, power:metric(p.id,"power",vd,ui.cmp), htp:metric(p.id,"htp",vd,ui.cmp)}));
+}
+function render(){
+  if(!M) touch();
+  renderControls(); renderStrip(); renderAlliance(); renderList();
+}
+function renderControls(){
+  const chips=$("#chips");
+  if(!chips.dataset.ready){
+    chips.dataset.ready="1";
+    chips.innerHTML = [0,5,4,3,2,1].map(r=>`<button class="chip" type="button" data-rank="${r}" aria-pressed="${ui.rank===r}" title="${r>0?RANK_NAMES[r]:r<0?'No longer in the alliance':'All ranks'}">${r>0?'R'+r:r<0?'Left':'All'}</button>`).join("");
+  }
+  chips.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(+c.dataset.rank===ui.rank)));
+  const ds=[...M.dates].reverse();
+  const vsel=$("#viewDate"), csel=$("#cmpDate");
+  const vOpts = [`<option value="latest">Latest known values</option>`].concat(ds.map(d=>`<option value="${d}">${fmtDate(d,true)}</option>`)).join("");
+  if(vsel.innerHTML!==vOpts) vsel.innerHTML=vOpts;
+  vsel.value = (ui.view==="latest"||M.dates.includes(ui.view))?ui.view:"latest";
+  ui.view=vsel.value;
+  const cOpts = [`<option value="prev">Previous snapshot</option>`].concat(ds.map(d=>`<option value="${d}">${fmtDate(d,true)}</option>`)).join("");
+  if(csel.innerHTML!==cOpts) csel.innerHTML=cOpts;
+  csel.value = (ui.cmp==="prev"||M.dates.includes(ui.cmp))?ui.cmp:"prev";
+  ui.cmp=csel.value;
+  $("#sort").value=ui.sort; $("#sort").disabled=ui.gap!=="off"; $("#gap").value=ui.gap; $("#gapNWrap").hidden=ui.gap==="off"; $("#gapN").value=String(ui.gapN);
+  const lp=M.dk.power[M.dk.power.length-1], lh=M.dk.htp[M.dk.htp.length-1];
+  $("#asof").textContent = "Power as of "+(lp?fmtDate(lp,true):"—")+" · Higher march as of "+(lh?fmtDate(lh,true):"—");
+}
+function renderStrip(){
+  const R=rows(); const withP=R.filter(r=>r.power.v!=null), withH=R.filter(r=>r.htp.v!=null);
+  const tot=withP.reduce((a,r)=>a+r.power.v,0);
+  const avgH=withH.length?withH.reduce((a,r)=>a+r.htp.v,0)/withH.length:null;
+  const both=R.filter(r=>r.power.v!=null&&r.htp.v!=null);
+  const ratio=both.length?both.reduce((a,r)=>a+r.htp.v/r.power.v,0)/both.length:null;
+  $("#strip").innerHTML =
+    `<span><b>${R.length}</b> players</span>`+
+    `<span>Total power <b>${fmt(tot)}</b></span>`+
+    `<span>Average higher march <b>${fmt(avgH)}</b></span>`+
+    `<span>Higher march ≈ <b>${ratio==null?"—":Math.round(ratio*100)+"%"}</b> of power</span>`;
+}
+function renderAlliance(){
+  const body=$("#allianceBody"); const parts=[];
+  [["power","Total power","var(--power)"],["htp","Average higher march","var(--htp)"]].forEach(([k,label,color])=>{
+    const ds=M.dk[k]; if(ds.length<2) return;
+    const pts=ds.map(d=>{ let s=0,n=0; M.visible.forEach(p=>{ const pt=pointAt(M.series[p.id][k],d); if(pt){s+=pt.v;n++;} }); return {d,v:k==="power"?s:(n?s/n:0)}; });
+    parts.push(`<div><h3 class="muted" style="margin:0 0 4px;font-size:14px">${label}</h3>${lineChart(pts,color)}</div>`);
+  });
+  body.innerHTML = parts.length ? `<div class="charts2">${parts.join("")}</div>` : `<p class="hint">Charts appear once you have two snapshots for the same measure. Use “New snapshot” to add one.</p>`;
+}
+function sortRows(R){
+  const s=ui.sort, dir=(a,b)=>a===b?0:(a==null?1:(b==null?-1:b-a));
+  const key={power:r=>r.power.v,htp:r=>r.htp.v,ratio:r=>(r.power.v&&r.htp.v)?r.htp.v/r.power.v:null,dpower:r=>r.power.delta,dhtp:r=>r.htp.delta};
+  if(s==="name") return R.sort((a,b)=>a.p.name.localeCompare(b.p.name,"en",{sensitivity:"base"}));
+  return R.sort((a,b)=>{ const c=dir(key[s](a),key[s](b)); return c||a.p.name.localeCompare(b.p.name,"en"); });
+}
+function dlHtml(m){
+  if(m.delta==null) return `<i class="dl flat" title="No previous snapshot yet">—</i>`;
+  const cls=m.delta>0?"up":m.delta<0?"down":"flat";
+  return `<i class="dl ${cls}" title="Since ${fmtDate(m.pd,true)}">${fmtD(m.delta)}</i>`;
+}
+function spark(pts,color,label){
+  const W=58,H=20,p=3;
+  if(pts.length<2){
+    const y=H/2, dot=pts.length?`<circle cx="${W-p}" cy="${y}" r="2.6" fill="${color}"/>`:"";
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}: trend appears after 2 snapshots"><title>Trend appears after 2 snapshots</title><line x1="${p}" x2="${W-p}" y1="${y}" y2="${y}" stroke="${color}" stroke-width="1.5" stroke-dasharray="2 3" opacity=".55"/>${dot}</svg>`;
+  }
+  const ts=pts.map(q=>Date.parse(q.d+"T00:00:00Z")), t0=ts[0], t1=ts[ts.length-1];
+  let lo=Math.min(...pts.map(q=>q.v)), hi=Math.max(...pts.map(q=>q.v)); if(hi-lo<1e-9){lo-=1;hi+=1;}
+  const X=t=>p+(t-t0)/(t1-t0)*(W-2*p), Y=v=>p+(1-(v-lo)/(hi-lo))*(H-2*p);
+  const d=pts.map((q,i)=>(i?"L":"M")+X(ts[i]).toFixed(1)+" "+Y(q.v).toFixed(1)).join("");
+  const last=pts[pts.length-1], first=pts[0], diff=last.v-first.v;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label} trend"><title>${label}: ${fmt(first.v)} → ${fmt(last.v)} (${fmtDate(first.d)} – ${fmtDate(last.d)}, ${fmtD(diff)})</title><path d="${d}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(t1).toFixed(1)}" cy="${Y(last.v).toFixed(1)}" r="2.4" fill="${color}"/></svg>`;
+}
+function renderList(){
+  const formerView = ui.rank===-1;
+  let R=rows(formerView?M.former:null);
+  const q=norm(ui.q);
+  if(ui.rank>0) R=R.filter(r=>r.p.rank===ui.rank);
+  if(q) R=R.filter(r=>{ if(norm(r.p.name).includes(q)) return true; return (M.aliases[r.p.id]||[]).some(a=>norm(M.byId[a].name).includes(q)); });
+  const gapOn=ui.gap!=="off", gapInfo={};
+  if(gapOn){
+    R=R.filter(r=>r.power.v!=null&&r.htp.v!=null&&r.power.v>0);
+    const ratios=rows().filter(x=>x.power.v>0&&x.htp.v!=null).map(x=>x.htp.v/x.power.v).sort((a,b)=>a-b);
+    const med=ratios.length?(ratios.length%2?ratios[(ratios.length-1)/2]:(ratios[ratios.length/2-1]+ratios[ratios.length/2])/2):0;
+    R.forEach(r=>{ gapInfo[r.p.id]={share:r.htp.v/r.power.v, med, head:r.power.v*med-r.htp.v}; });
+    if(ui.gap==="headroom") R=R.filter(r=>gapInfo[r.p.id].head>0);
+    const key=r=>ui.gap==="headroom"?gapInfo[r.p.id].head:-gapInfo[r.p.id].share;
+    R.sort((a,b)=>key(b)-key(a));
+    if(ui.gapN>0) R=R.slice(0,ui.gapN);
+  } else sortRows(R);
+  const maxP=Math.max(1,...rows().map(r=>r.power.v||0)), maxH=Math.max(1,...rows().map(r=>r.htp.v||0));
+  $("#count").textContent = R.length+" shown"+(gapOn?" · ranked for coaching":"");
+  if(!R.length){ $("#list").innerHTML=`<li class="empty">No player matches this search.</li>`; return; }
+  $("#list").innerHTML = R.map(r=>{
+    const p=r.p, open=ui.open===p.id;
+    const gi=gapInfo[p.id];
+    const gapBadge = gi ? `<span class="badge gap" title="Potential = power × alliance median share − current higher march">Higher march ${Math.round(gi.share*100)}% of power (alliance median ${Math.round(gi.med*100)}%)${gi.head>0?" · potential +"+fmt(gi.head):""}</span>` : "";
+    const badge = gapBadge + (p.hint ? `<span class="badge warn">Maybe ${esc(p.hint)}</span>` : "");
+    const vd=viewDate();
+    const cell=(cls,k,m,max,color,label)=> `<span class="cell ${cls}"><span class="val">${m.v==null?'<span class="na">No data yet</span>':`<b>${fmt(m.v)}</b>${dlHtml(m)}`}</span><span class="barrow"><span class="bar"><span style="width:${m.v==null?0:Math.max(1.5,m.v/max*100).toFixed(1)}%"></span></span>${spark(M.series[p.id][k].filter(q=>q.d<=vd),color,label)}</span></span>`;
+    return `<li class="row${open?" open":""}" data-id="${p.id}"><button class="rowhead" type="button" aria-expanded="${open}" data-toggle="${p.id}">
+      <span class="rk r${p.rank}" title="${RANK_NAMES[p.rank]||''}">R${p.rank}</span>
+      <span class="nm">${esc(p.name)}${badge}</span>
+      ${cell("pw","power",r.power,maxP,"var(--power)","Power")}${cell("hm","htp",r.htp,maxH,"var(--htp)","Higher march")}
+      <span class="chev" aria-hidden="true">▾</span></button>
+      ${open?detailHtml(r):""}</li>`;
+  }).join("");
+}
+
+function lineChart(pts,color){
+  if(!pts.length) return `<p class="hint">No data.</p>`;
+  const W=320,H=124,pl=14,pr=14,pt=24,pb=24;
+  const ts=pts.map(p=>Date.parse(p.d+"T00:00:00Z")), t0=Math.min(...ts), t1=Math.max(...ts);
+  const vs=pts.map(p=>p.v); let lo=Math.min(...vs), hi=Math.max(...vs);
+  if(hi-lo<1e-9){lo-=1;hi+=1;} const pad=(hi-lo)*.2; lo-=pad; hi+=pad;
+  const X=t=>t1===t0?W/2:pl+(t-t0)/(t1-t0)*(W-pl-pr), Y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);
+  const clamp=x=>Math.min(W-22,Math.max(22,x));
+  const path=pts.map((p,i)=>(i?"L":"M")+X(ts[i]).toFixed(1)+" "+Y(p.v).toFixed(1)).join("");
+  const showAll=pts.length<=6;
+  let g=`<line class="axis" x1="${pl}" x2="${W-pr}" y1="${H-pb+6}" y2="${H-pb+6}"/>`;
+  if(pts.length>1) g+=`<path d="${path}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  pts.forEach((p,i)=>{
+    const x=X(ts[i]), y=Y(p.v), edge=(i===0||i===pts.length-1);
+    g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="${color}"><title>${fmtDate(p.d,true)}: ${fmt(p.v)}</title></circle>`;
+    if(showAll||edge) g+=`<text class="v" x="${clamp(x).toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle">${fmt(p.v)}</text>`;
+    if(showAll||edge) g+=`<text x="${clamp(x).toFixed(1)}" y="${H-6}" text-anchor="middle">${fmtDate(p.d)}</text>`;
+  });
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Change over time">${g}</svg>`;
+}
+function detailHtml(r){
+  const p=r.p, s=M.series[p.id];
+  const dset=[...new Set([...s.power.map(x=>x.d),...s.htp.map(x=>x.d)])].sort().reverse();
+  const val=(k,d)=>{ const x=s[k].find(q=>q.d===d); return x?x.v:null; };
+  const delta=(k,d)=>{ const i=s[k].findIndex(q=>q.d===d); if(i<1) return ""; return dlHtml({delta:s[k][i].v-s[k][i-1].v,pd:s[k][i-1].d}); };
+  const hist = dset.length ? `<table class="hist"><thead><tr><th>Date</th><th>Power</th><th></th><th>Higher march</th><th></th></tr></thead><tbody>${dset.map(d=>`<tr><td>${fmtDate(d,true)}</td><td>${fmt(val("power",d))}</td><td>${delta("power",d)}</td><td>${fmt(val("htp",d))}</td><td>${delta("htp",d)}</td></tr>`).join("")}</tbody></table>` : `<p class="hint">No snapshots for this player.</p>`;
+  const als=(M.aliases[p.id]||[]).map(a=>`<div class="aliasrow"><span>Also recorded as <b>${esc(M.byId[a].name)}</b></span></div>`).join("");
+  const hintId = p.hint ? nameToId[p.hint] : null;
+  const hintBtn = (p.hint && hintId && M.byId[hintId] && !M.merges[hintId]) ? `<div class="aliasrow"><span>This higher march may belong to <b>${esc(p.hint)}</b>.</span><button class="btn primary" type="button" data-action="merge" data-from="${p.id}" data-to="${hintId}">Merge with ${esc(p.hint)}</button></div>` : "";
+  const opts = M.visible.filter(x=>x.id!==p.id).sort((a,b)=>a.name.localeCompare(b.name,"en",{sensitivity:"base"})).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
+  return `<div class="detail">
+    <div class="mini">
+      <div><h3>Power</h3>${lineChart(s.power,"var(--power)")}</div>
+      <div><h3>Higher march</h3>${lineChart(s.htp,"var(--htp)")}</div>
+    </div>
+    <h3>History</h3>${hist}
+  </div>`;
+}
+
+/* ---------- Données : sauvegarde ---------- */
+function serialize(){ return {v:1,snaps:user.snaps||{},merges:user.merges||{},extra:user.extra||[]}; }
+function normalizeUser(d){ return {snaps:(d&&d.snaps)||{},merges:(d&&d.merges)||{},extra:(d&&d.extra)||[]}; }
+function writeLocal(){ try{ localStorage.setItem("die-tracker-v1",JSON.stringify(serialize())); }catch(e){} }
+function readLocal(){ try{ const s=localStorage.getItem("die-tracker-v1"); return s?normalizeUser(JSON.parse(s)):null; }catch(e){ return null; } }
+function persist(){
+  writeLocal();
+  if(!dbRef) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ saveChain=saveChain.then(()=>dbRef.set(serialize())).catch(e=>toast("Online save failed ("+((e&&e.code)||"error")+"). A copy is kept on this device.")); },400);
+}
+function changed(msg){ touch(); persist(); render(); if(msg) toast(msg); }
+let toastT=null;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},3600); }
+
+function saveEntries(date,items){
+  user.snaps = user.snaps||{};
+  const s = user.snaps[date] = user.snaps[date]||{power:{},htp:{}};
+  s.power=s.power||{}; s.htp=s.htp||{};
+  items.forEach(it=>{ if(it.power!=null) s.power[it.id]=it.power; if(it.htp!=null) s.htp[it.id]=it.htp; });
+}
+
+/* ---------- Dialogue de relevé ---------- */
+let tab="paste";
+function openDlg(){
+  $("#dDate").value=todayISO(); $("#dText").value=""; $("#dErr").textContent=""; $("#dCreate").checked=false;
+  setTab("paste");
+  const vd="9999-12-31";
+  $("#gridBody").innerHTML = `<div class="g-row head"><span>Player</span><span>Power</span><span>Higher march</span></div>` +
+    M.visible.slice().sort((a,b)=>(metric(b.id,"power",vd,"prev").v||0)-(metric(a.id,"power",vd,"prev").v||0)).map(p=>{
+      const mp=metric(p.id,"power",vd,"prev"), mh=metric(p.id,"htp",vd,"prev");
+      return `<label class="g-row"><span>${esc(p.name)}</span><input inputmode="decimal" data-g="power" data-id="${p.id}" placeholder="${mp.v!=null?nf.format(mp.v):''}" aria-label="Puissance de ${esc(p.name)}"><input inputmode="decimal" data-g="htp" data-id="${p.id}" placeholder="${mh.v!=null?nf.format(mh.v):''}" aria-label="Higher march de ${esc(p.name)}"></label>`;
+    }).join("");
+  const d=$("#dlg"); if(d.showModal) d.showModal(); else d.setAttribute("open","");
+}
+function setTab(t){ tab=t; document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===t))); $("#tabPaste").hidden=t!=="paste"; $("#tabGrid").hidden=t!=="grid"; $("#dErr").textContent=""; }
+function submitDlg(){
+  const date=$("#dDate").value, err=[];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ $("#dErr").textContent="Choose the snapshot date."; return; }
+  const items=[]; let created=0; const prevExtra=user.extra;
+  if(tab==="grid"){
+    const map={};
+    document.querySelectorAll("#gridBody input").forEach(inp=>{
+      const v=inp.value.trim(); if(!v) return;
+      const n=parseVal(v); const name=M.byId[inp.dataset.id].name;
+      if(n==null){ err.push("Unreadable value for "+name+": “"+v+"”"); return; }
+      (map[inp.dataset.id]=map[inp.dataset.id]||{id:inp.dataset.id})[inp.dataset.g]=n;
+    });
+    Object.values(map).forEach(x=>items.push(x));
+  } else {
+    const mode=$("#dMode").value, lines=$("#dText").value.split(/\r?\n/);
+    const extra=(user.extra||[]).slice();
+    lines.forEach((line,i)=>{
+      const l=line.trim(); if(!l) return;
+      const parts=l.split(/\t|;|\|/).map(s=>s.trim()).filter(Boolean);
+      const need=mode==="both"?3:2;
+      if(parts.length<need){ err.push("Line "+(i+1)+": missing value — “"+l+"”"); return; }
+      const nums=parts.slice(1,need).map(parseVal);
+      if(nums.some(n=>n==null)){ err.push("Line "+(i+1)+": unreadable value — “"+l+"”"); return; }
+      const key=norm(parts[0]); let id=M.names[key];
+      if(!id){
+        if($("#dCreate").checked){ id="x"+(Date.now().toString(36))+i; extra.push({id,name:parts[0].replace(/^\[die\]\s*/i,""),rank:2,hint:null}); created++; }
+        else { err.push("Line "+(i+1)+": unrecognised player — “"+parts[0]+"”"); return; }
+      }
+      id=M.resolve(id);
+      items.push(mode==="both"?{id,power:nums[0],htp:nums[1]}:mode==="power"?{id,power:nums[0]}:{id,htp:nums[0]});
+    });
+    if(created) user.extra=extra;
+  }
+  if(err.length){ $("#dErr").textContent=err.slice(0,8).join("\n")+(err.length>8?"\n… and "+(err.length-8)+" more":"" ); user.extra=prevExtra; return; }
+  if(!items.length){ $("#dErr").textContent="Nothing to save."; return; }
+  touch();
+  items.forEach(it=>{ it.id=M.resolve(it.id); });
+  saveEntries(date,items);
+  $("#dlg").close();
+  changed("Snapshot for "+fmtDate(date,true)+" saved ("+items.length+" player"+(items.length>1?"s":"")+")"+(created?", "+created+" created":"")+".");
+}
+
+/* ---------- Événements ---------- */
+$("#btnNew").addEventListener("click",openDlg);
+$("#dCancel").addEventListener("click",()=>$("#dlg").close());
+$("#dSave").addEventListener("click",submitDlg);
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+$("#q").addEventListener("input",e=>{ ui.q=e.target.value; renderList(); });
+$("#gap").addEventListener("change",e=>{ ui.gap=e.target.value; renderControls(); renderList(); });
+$("#gapN").addEventListener("change",e=>{ ui.gapN=+e.target.value; renderList(); });
+$("#sort").addEventListener("change",e=>{ ui.sort=e.target.value; renderList(); });
+$("#viewDate").addEventListener("change",e=>{ ui.view=e.target.value; render(); });
+$("#cmpDate").addEventListener("change",e=>{ ui.cmp=e.target.value; render(); });
+$("#chips").addEventListener("click",e=>{ const b=e.target.closest(".chip"); if(!b) return; ui.rank=+b.dataset.rank; renderControls(); renderList(); });
+$("#list").addEventListener("click",e=>{
+  const act=e.target.closest("[data-action]");
+  if(act){
+    const row=act.closest(".row"); const a=act.dataset.action;
+    if(a==="unmerge"){ user.merges=user.merges||{}; user.merges[act.dataset.id]=null; changed("Players unlinked."); }
+    else if(a==="merge"){ user.merges=user.merges||{}; user.merges[act.dataset.from]=act.dataset.to; ui.open=act.dataset.to; changed("Histories merged."); }
+    else if(a==="mergeSel"){
+      const to=row.querySelector('[data-f="mergeTo"]').value; if(!to) return;
+      if(M.resolve(to)===act.dataset.id){ toast("Cannot merge: this would create a loop."); return; }
+      user.merges=user.merges||{}; user.merges[act.dataset.id]=to; ui.open=M.resolve(to); changed("Histories merged.");
+    }
+    else if(a==="quick"){
+      const date=row.querySelector('[data-f="date"]').value, pv=row.querySelector('[data-f="power"]').value.trim(), hv=row.querySelector('[data-f="htp"]').value.trim();
+      const errEl=row.querySelector('[data-f="err"]');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ errEl.textContent="Choose a date."; return; }
+      const p=pv?parseVal(pv):null, h=hv?parseVal(hv):null;
+      if((pv&&p==null)||(hv&&h==null)){ errEl.textContent="Unreadable value. Example: 250.10"; return; }
+      if(p==null&&h==null){ errEl.textContent="Enter at least one value."; return; }
+      saveEntries(date,[{id:act.dataset.id,power:p,htp:h}]);
+      changed("Value saved for "+fmtDate(date,true)+".");
+    }
+    return;
+  }
+  if(e.target.closest(".detail")) return;
+  const t=e.target.closest("[data-toggle]"); if(!t) return;
+  ui.open = ui.open===t.dataset.toggle ? null : t.dataset.toggle; renderList();
+});
+$("#btnExport").addEventListener("click",async()=>{
+  if(!downloads) return;
+  const out=["date;player;rank;power_M;higher_march_M"];
+  M.dates.forEach(d=>{
+    M.visible.forEach(p=>{
+      const a=M.series[p.id].power.find(x=>x.d===d), b=M.series[p.id].htp.find(x=>x.d===d);
+      if(a||b) out.push([d,'"'+p.name.replace(/"/g,'""')+'"',"R"+p.rank,a?a.v:"",b?b.v:""].join(";"));
+    });
+  });
+  try{ await downloads.save({filename:"die-player-tracker.csv",data:"\ufeff"+out.join("\n")}); }catch(e){ if(!e||e.code!=="cancelled") toast("Export unavailable right now."); }
+});
+
+/* ---------- Thème (clair par défaut) ---------- */
+function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); $("#btnTheme").textContent = t==="dark"?"Light mode":"Dark mode"; try{localStorage.setItem("die-theme",t);}catch(e){} }
+$("#btnTheme").addEventListener("click",()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"));
+let savedTheme="light"; try{ savedTheme=localStorage.getItem("die-theme")||"light"; }catch(e){}
+applyTheme(savedTheme);
+/* ---------- Démarrage ---------- */
+const local=null;
+touch(); render();
+(async()=>{
+  try{
+    if(!window.claude||!window.claude.use) return;
+    const [d,dl]=await Promise.all([window.claude.use("db"),window.claude.use("downloads")]);
+    
+    if(false){
+      db=d; dbRef=d.doc("tracker/state");
+      dbRef.onSnapshot(snap=>{
+        if(snap.metadata&&snap.metadata.hasPendingWrites) return;
+        if(snap.exists){ user=normalizeUser(snap.data()); writeLocal(); touch(); render(); }
+        else if(local && (Object.keys(local.snaps).length||local.extra.length||Object.keys(local.merges).length)){ persist(); }
+      },()=>{});
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
