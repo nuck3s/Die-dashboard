@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DiE · Player stats</title>
+<title>DiE · Player tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Hanken+Grotesk:wght@400..700&display=swap" rel="stylesheet">
@@ -37,7 +37,6 @@ h1{font:700 27px/1.1 var(--display);letter-spacing:-.01em;margin:0 0 4px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.ghost{background:transparent}
 .btn[hidden]{display:none}
-.admin{display:none!important}
 .strip{margin:14px 0 4px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;color:var(--muted)}
 .strip b{color:var(--ink);font-weight:650}
 details.alliance{margin:10px 0 0;border-bottom:1px solid var(--line);padding-bottom:10px}
@@ -173,11 +172,11 @@ h3.rsec.up{color:var(--up)}h3.rsec.down{color:var(--down)}
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>DiE · Player stats</h1>
+    <h1>DiE · Player tracker</h1>
     <p class="sub" id="asof"></p>
     <div class="actions">
-      <button class="btn primary admin" id="btnNew" type="button" hidden>New snapshot</button>
-      <button class="btn admin" id="btnExport" type="button" hidden>Export CSV</button>
+      <button class="btn primary" id="btnNew" type="button">New snapshot</button>
+      <button class="btn" id="btnExport" type="button" hidden>Export CSV</button>
       <button class="btn primary admin" id="btnVS" type="button" style="display:none">Add VS scores</button>
       <button class="btn ghost" id="btnTheme" type="button">Dark mode</button>
     </div>
@@ -210,14 +209,14 @@ h3.rsec.up{color:var(--up)}h3.rsec.down{color:var(--down)}
           <option value="name">Name</option>
         </select>
       </label>
-      <label class="admin">Coaching view
+      <label>Coaching view
         <select id="gap">
           <option value="off">Off</option>
           <option value="headroom">Coaching priority (most potential to gain)</option>
           <option value="share">Weakest higher march relative to power</option>
         </select>
       </label>
-      <label id="gapNWrap" class="admin" hidden>Show
+      <label id="gapNWrap" hidden>Show
         <select id="gapN">
           <option value="10">Top 10</option>
           <option value="20" selected>Top 20</option>
@@ -879,7 +878,7 @@ function renderControls(){
   const chips=$("#chips");
   if(!chips.dataset.ready){
     chips.dataset.ready="1";
-    chips.innerHTML = [0,5,4,3,2,1].map(r=>`<button class="chip" type="button" data-rank="${r}" aria-pressed="${ui.rank===r}" title="${r>0?RANK_NAMES[r]:r<0?'No longer in the alliance':'All ranks'}">${r>0?'R'+r:r<0?'Left':'All'}</button>`).join("");
+    chips.innerHTML = [0,5,4,3,2,1,-1].map(r=>`<button class="chip" type="button" data-rank="${r}" aria-pressed="${ui.rank===r}" title="${r>0?RANK_NAMES[r]:r<0?'No longer in the alliance':'All ranks'}">${r>0?'R'+r:r<0?'Left':'All'}</button>`).join("");
   }
   chips.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(+c.dataset.rank===ui.rank)));
   const ds=[...M.dates].reverse();
@@ -1003,7 +1002,7 @@ function detailHtml(r){
   const val=(k,d)=>{ const x=s[k].find(q=>q.d===d); return x?x.v:null; };
   const delta=(k,d)=>{ const i=s[k].findIndex(q=>q.d===d); if(i<1) return ""; return dlHtml({delta:s[k][i].v-s[k][i-1].v,pd:s[k][i-1].d}); };
   const hist = dset.length ? `<table class="hist"><thead><tr><th>Date</th><th>Power</th><th></th><th>Higher march</th><th></th></tr></thead><tbody>${dset.map(d=>`<tr><td>${fmtDate(d,true)}</td><td>${fmt(val("power",d))}</td><td>${delta("power",d)}</td><td>${fmt(val("htp",d))}</td><td>${delta("htp",d)}</td></tr>`).join("")}</tbody></table>` : `<p class="hint">No snapshots for this player.</p>`;
-  const als=(M.aliases[p.id]||[]).map(a=>`<div class="aliasrow"><span>Also recorded as <b>${esc(M.byId[a].name)}</b></span></div>`).join("");
+  const als=(M.aliases[p.id]||[]).map(a=>`<div class="aliasrow"><span>Also recorded as <b>${esc(M.byId[a].name)}</b></span><button class="btn ghost" type="button" data-action="unmerge" data-id="${a}">Unlink</button></div>`).join("");
   const hintId = p.hint ? nameToId[p.hint] : null;
   const hintBtn = (p.hint && hintId && M.byId[hintId] && !M.merges[hintId]) ? `<div class="aliasrow"><span>This higher march may belong to <b>${esc(p.hint)}</b>.</span><button class="btn primary" type="button" data-action="merge" data-from="${p.id}" data-to="${hintId}">Merge with ${esc(p.hint)}</button></div>` : "";
   const opts = M.visible.filter(x=>x.id!==p.id).sort((a,b)=>a.name.localeCompare(b.name,"en",{sensitivity:"base"})).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
@@ -1014,6 +1013,20 @@ function detailHtml(r){
     </div>
     <h3>History</h3>${hist}
     ${vsDetail(p.id)}
+    <h3>Add a value for ${esc(p.name)}</h3>
+    <div class="entry">
+      <label>Date<input class="field" type="date" data-f="date" value="${todayISO()}"></label>
+      <label>Power (M)<input class="field" inputmode="decimal" data-f="power" placeholder="${r.power.v!=null?nf.format(r.power.v):'e.g. 250.10'}"></label>
+      <label>Higher march (M)<input class="field" inputmode="decimal" data-f="htp" placeholder="${r.htp.v!=null?nf.format(r.htp.v):'e.g. 70.25'}"></label>
+      <button class="btn primary" type="button" data-action="quick" data-id="${p.id}">Save</button>
+    </div>
+    <div class="err" data-f="err"></div>
+    <h3>Player identity</h3>
+    ${als}${hintBtn}
+    <div class="aliasrow"><label class="muted" for="mg-${p.id}">Same player as</label>
+      <select id="mg-${p.id}" data-f="mergeTo"><option value="">Choose a player…</option>${opts}</select>
+      <button class="btn" type="button" data-action="mergeSel" data-id="${p.id}">Merge</button></div>
+    <p class="hint">Merging attaches a renamed player's snapshots to a single history.</p>
   </div>`;
 }
 
@@ -1316,14 +1329,14 @@ $("#btnTheme").addEventListener("click",()=>applyTheme(document.documentElement.
 let savedTheme="light"; try{ savedTheme=localStorage.getItem("die-theme")||"light"; }catch(e){}
 applyTheme(savedTheme);
 /* ---------- Démarrage ---------- */
-const local=null;
+const local=readLocal(); if(local) user=local;
 touch(); render();
 (async()=>{
   try{
     if(!window.claude||!window.claude.use) return;
     const [d,dl]=await Promise.all([window.claude.use("db"),window.claude.use("downloads")]);
-    
-    if(false){
+    if(dl){ downloads=dl; $("#btnExport").hidden=false; }
+    if(d){
       db=d; dbRef=d.doc("tracker/state");
       dbRef.onSnapshot(snap=>{
         if(snap.metadata&&snap.metadata.hasPendingWrites) return;
