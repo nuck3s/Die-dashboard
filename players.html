@@ -258,6 +258,7 @@ h3.rsec.up{color:var(--up)}h3.rsec.down{color:var(--down)}
         </label>
       </div>
     </div>
+    <div class="actions admin" style="margin:10px 0 0"><button class="btn primary" type="button" id="vsCopyR3">Copy the R3 list (top 30, R4 excluded)</button></div>
     <div class="vstrip" id="vsStrip"></div>
     <div class="dchips" id="vsDays"></div>
     <div class="legend"><span>Daily VS points (M) · the curve shows the trend through the week · Saturday (battle) is shown but not counted in the total</span><span id="vsCount"></span></div>
@@ -303,6 +304,12 @@ h3.rsec.up{color:var(--up)}h3.rsec.down{color:var(--down)}
     </div>
   </div>
 </dialog>
+<dialog id="dlgCopy" aria-labelledby="cpTitle">
+  <div class="dlg"><h2 id="cpTitle">Copy the list</h2>
+    <textarea class="field" id="cpText" readonly style="min-height:300px" aria-label="List to copy"></textarea>
+    <div class="dlgbtns"><button class="btn primary" type="button" id="cpClose">Close</button></div>
+  </div>
+</dialog>
 <dialog id="dlgVS" aria-labelledby="vsTitle">
   <div class="dlg">
     <h2 id="vsTitle">Add VS scores</h2>
@@ -328,14 +335,14 @@ const POWER_DATE = "2026-10-06";
 const HTP_DATE   = "2026-10-04";
 const RAW = [
 ["Drako Noctis",5,200.76,73.24],
-["Baby Dragon",4,377.25,135.37],["Raveneyes",4,362.95,128.32],["Julie",4,329.04,108.23],
+["Baby Dragon",4,377.25,135.37,{m:"Super Dragon"}],["Raveneyes",4,362.95,128.32],["Julie",4,329.04,108.23],
 ["Dead Frog",4,276.80,null],["Froggy is Back",4,null,73.75,{m:"Dead Frog"}],
 ["Luz",4,270.57,77.78],["Marik",4,266.26,76.37],
 ["nuckes",4,248.77,null],["ducky nuckes",4,null,79.86,{m:"nuckes"}],
-["☾✧Moondance✧☾",4,233.86,64.32],["Kirke Fox",4,193.90,67.37],["Kaiser",4,187.65,48.85],
-["Tekkno",3,298.56,113.94],["Scylla",3,295.57,null],["404",3,282.47,86.91,{left:true}],["xyzzy",3,280.61,107.17],
+["☾✧Moondance✧☾",4,233.86,64.32,{m:"Moonageddon"}],["Kirke Fox",4,193.90,67.37],["Kaiser",4,187.65,48.85],
+["Tekkno",3,298.56,113.94],["Scylla",3,295.57,null,{m:"Armageddon's Cow"}],["404",3,282.47,86.91,{left:true}],["xyzzy",3,280.61,107.17],
 ["silver mouse",3,264.84,63.98],["BEER",3,258.51,null],["BEER [NO BEER]",3,null,65.36,{m:"BEER"}],
-["Blacky 1971",3,254.94,60.44],["FraG",3,246.84,69.86],["full squirrel",3,227.89,72.57],["Bunny Smile",3,226.10,61.50],
+["Blacky 1971",3,254.94,60.44],["FraG",3,246.84,69.86],["full squirrel",3,227.89,72.57],["Bunny Smile",3,226.10,61.50,{m:"Last Smile"}],
 ["×°Golden Aerie°•",3,221.89,48.23],["NO ANA",3,221.08,null],["KaKtUs",3,215.95,52.87],["Møñà",3,215.31,59.90],
 ["Hermione Granger",3,214.27,39.93],["Jey",3,214.01,60.01],["Wolfie",3,211.27,58.16],["Sneak",3,206.53,71.79],
 ["-Little pig-",3,200.82,50.88],["Vadik.Step",3,199.43,65.88],["Winter Flower",3,197.02,56.76],["Herminin Ysélys",3,196.22,46.58],
@@ -343,23 +350,23 @@ const RAW = [
 ["apoLLo",3,188.81,62.46],["Bonbona",3,178.12,43.06],["kiler",3,170.80,37.90],["full turtle",3,170.05,49.18],
 ["xOxOx",3,155.70,36.38],["$L@YeR",3,153.26,39.97],["SEMB",3,143.01,27.16],
 ["Holy Cow !",3,null,99.85,{m:"Scylla"}],["NO RACCOON",3,null,59.38,{m:"NO ANA"}],
-["Ancient One",2,327.25,82.69],["Kai♡",2,320.84,91.51],["Gallus",2,265.76,67.14],["Stas",2,262.12,52.53],
+["Ancient One",2,327.25,82.69],["Kai♡",2,320.84,91.51,{m:"Kaida♡"}],["Gallus",2,265.76,67.14],["Stas",2,262.12,52.53,{m:"NoHope"}],
 ["Yoko [c Lessing]",2,254.02,null,{m:"Yoko без Lessing"}],["=RUSSIAN ANGEL=",2,251.87,59.39],["Sky Drágø",2,250.20,65.83],["CRACK",2,243.06,66.21],
-["Lia®WarriorBunny",2,241.73,74.90],["Мали[Пупочек]",2,239.38,65.81,{m:"Душнила.com"}],["Ponds",2,237.74,66.38],["Djafer",2,237.65,60.86],
+["Lia®WarriorBunny",2,241.73,74.90,{m:"Lia®DeadBunny"}],["Мали[Пупочек]",2,239.38,65.81,{m:"Душнила.com"}],["Ponds",2,237.74,66.38],["Djafer",2,237.65,60.86],
 ["Frigmo",2,237.60,50.77],["KeegleBalls",2,235.80,null],["SteRal040",2,232.67,55.74],["Aria",2,228.30,53.00],
 ["MissSwiss",2,225.42,44.67],["Türker",2,221.15,60.17],["Gojo",2,220.56,62.45],["donbobby",2,217.83,66.79],
-["Megan",2,208.70,66.07],["loritz8",2,207.00,48.35],["Kitsune Fox",2,205.81,56.11],["Roni Grangerbee",2,202.28,42.91],
+["Megan",2,208.70,66.07],["loritz8",2,207.00,48.35],["Kitsune Fox",2,205.81,56.11],["Roni Grangerbee",2,202.28,42.91,{m:"Roni BeePocalyps"}],
 ["babbo112",2,200.72,49.16],["f. sultân mehmet",2,198.50,63.07],["TheWhimp",2,195.43,39.69],["Justice",2,195.49,61.33],
 ["BigBossLedy",2,194.95,30.68],["DEADP♥♥L",2,185.99,53.29],["Coni",2,182.42,41.48],["Vespera",2,181.45,46.32],
 ["NEMESIS (stylised name)",2,181.07,50.47],["سیکندر",2,180.21,60.54],["Bachi",2,179.27,36.84],["Aizek",2,179.14,42.47],
 ["TiTaN",2,178.84,44.86],["Marrrrria",2,176.85,37.21],["Effe",2,176.56,49.47],["monk",2,176.01,45.48],
-["Blonde",2,169.57,50.12],["Purgatory",2,164.98,54.10],["Twoflower",2,162.90,37.07],["Christina",2,161.35,44.13],
+["Blonde",2,169.57,50.12],["Purgatory",2,164.98,54.10],["Twoflower",2,162.90,37.07],["Christina",2,161.35,44.13,{m:"ChristiKhaos"}],
 ["Per$iano",2,159.64,48.91],["Voreto33",2,156.13,38.39],["ALJ53",2,149.84,39.66],["Yagami Light",2,149.69,36.54],
 ["Ratul",2,149.14,44.83],["Devcon",2,148.67,32.01],["Blacksabat",2,148.48,31.85],["Sokratis",2,140.44,26.21],
 ["Raging Bull",2,138.80,39.44],["skylar",2,131.80,42.96],["welshdragon71",2,129.94,30.49],["EDI 335",2,124.65,28.53],
 ["Axiom",2,120.72,52.07],
 ["Micoco",1,195.05,null],["lordargent",1,137.91,null],
-["Yoko без Lessing",2,null,null],["Душнила.com",2,null,null],["Totoro",3,null,null],["DrakoX",2,null,null]
+["Yoko без Lessing",2,null,null],["Душнила.com",2,null,null,{m:"Душный"}],["Totoro",3,null,null],["DrakoX",2,null,null],["Armageddon's Cow",3,null,null],["Super Dragon",4,null,null],["Kaida♡",2,null,null],["NoHope",2,null,null],["Moonageddon",4,null,null],["Last Smile",3,null,null],["Lia®DeadBunny",2,null,null],["ChristiKhaos",2,null,null],["Roni BeePocalyps",2,null,null],["Душный",2,null,null]
 ];
 const RANK_NAMES = {5:"Commander",4:"Bannered",3:"Knight",2:"Squire",1:"Page"};
 
@@ -376,6 +383,7 @@ RAW.forEach((r,i)=>{
 RAW.forEach((r,i)=>{ const o=r[4]||{}; if(o.m) BASE_MERGES["p"+i] = nameToId[o.m]; });
 
 /* VS event — daily points (M) per player, week starting Monday 2026-10-05 (Mon–Thu read from the in-game daily rankings) */
+const VS_ADJ = {"2026-10-05":{"DrakoX":71.16}};  // points counted in the in-game weekly total but not attributable to a day
 const VS_BASE = {"2026-10-05":{"Mon":[["Purgatory",129.72],
 ["nuckes",97.06],
 ["Baby Dragon",93.02],
@@ -768,7 +776,7 @@ const VS_BASE = {"2026-10-05":{"Mon":[["Purgatory",129.72],
 ["Per$iano",5.34],
 ["Sokratis",5.16],
 ["Effe",3.29],
-["=RUSSIAN ANGEL=",1.52]]}};
+["=RUSSIAN ANGEL=",1.52]],"Fri":[["Jey",288.58],["Kai♡",231.01],["xyzzy",207.5],["Julie",196.18],["Scylla",175.25],["Lia®WarriorBunny",129.67],["Megan",88.31],["DEADP♥♥L",80.47],["Vespera",75.1],["Yoko без Lessing",73.44],["silver mouse",72.61],["Marik",72.27],["Wolfie",69.38],["Raveneyes",69.11],["Aizek",66.95],["Purgatory",66.93],["Justice",63.25],["Tekkno",62.1],["Christina",61.29],["Türker",59.06],["Kitsune Fox",58.91],["nuckes",58.68],["NO ANA",58.32],["Møñà",56.78],["Herminin Ysélys",55.1],["Sneak",53.75],["Roni Grangerbee",53.15],["Drako Noctis",52.84],["Ratul",51.1],["Bunny Smile",51.01],["xOxOx",50.25],["FraG",50.06],["Winter Flower",48.68],["Blonde",45.47],["☾✧Moondance✧☾",45.2],["babbo112",45.1],["Душнила.com",44.61],["kiler",44.33],["Stas",40.62],["Totoro",40.54],["Blacky 1971",39.84],["Per$iano",38.4],["Djafer",37.34],["MissSwiss",37.11],["-Little pig-",36.87],["lordargent",36.35],["Vadik.Step",36.11],["سیکندر",34.86],["SteRal040",33.52],["Gojo",33.28],["full squirrel",33.04],["Dead Frog",32.8],["apoLLo",32.11],["full turtle",31.82],["$L@YeR",30.92],["Luz",30.9],["Kaiser",30.8],["Kirke Fox",28.68],["Bachi",28.24],["Baby Dragon",27.43],["skylar",26.91],["f. sultân mehmet",25.23],["KaKtUs",24.24],["Marrrrria",22.97],["Effe",22.96],["Hermione Granger",22.22],["Gallus",22.08],["EDI 335",19.74],["CRACK",19.42],["TheWhimp",18.89],["TiTaN",18.51],["NEMESIS (stylised name)",17.67],["Frigmo",16.99],["Raging Bull",15.6],["Ponds",15.16],["loritz8",14.72],["welshdragon71",12.48],["Devcon",12.1],["Micoco",11.2],["Axiom",11.2],["Bonbona",11.19],["DrakoX",11.12],["SEMB",10.8],["monk",10.77],["Blacksabat",9.43],["Yagami Light",8.65],["BigBossLedy",8.61],["Sokratis",8.46],["BEER",8.28],["×°Golden Aerie°•",8.03],["Sky Drágø",7.63],["Ancient One",7.57],["Twoflower",5.62],["Voreto33",3.9],["Coni",3.37],["Aria",2.72]]}};
 
 /* Snapshot du 8 oct. 2026 : [nom, puissance (M), higher march (M)]  — null = non visible dans la vidéo */
 const SNAP_DATE = "2026-10-08";
@@ -850,7 +858,8 @@ function build(){
     });
   });
   const vsWeeks=Object.keys(vs).sort();
-  return {snaps,dates,series,aliases,visible,former,byId,names,resolve,merges,dk,vs,vsWeeks};
+  const vsAdj={}; Object.keys(VS_ADJ).forEach(w=>{ vsAdj[w]={}; Object.keys(VS_ADJ[w]).forEach(n=>{ const id=nameToId[n]; if(id&&byId[resolve(id)]) vsAdj[w][resolve(id)]=VS_ADJ[w][n]; }); });
+  return {snaps,dates,series,aliases,visible,former,byId,names,resolve,merges,dk,vs,vsWeeks,vsAdj};
 }
 function touch(){ allPlayers().forEach(p=>{ if(p.base===undefined) p.base=p.rank; p.rank=(user.ranks&&user.ranks[p.id]!=null)?user.ranks[p.id]:p.base; }); M = build(); }
 
@@ -1109,8 +1118,9 @@ function vsEntered(w){ const x=M.vs[w]; return x?DAYS.filter(d=>Object.keys(x[d]
 function vsPlayer(w,id){
   const ent=vsEntered(w), days={}; let absent=0;
   DAYS.forEach(d=>{ if(!ent.includes(d)) days[d]=null; else { const v=M.vs[w][d][id]; if(v==null) absent++; days[d]=v==null?0:v; } });
-  const total=SCORE_DAYS.reduce((a,d)=>a+(days[d]||0),0);
-  return {days,total,ent,absent,never:ent.length>0&&absent===ent.length};
+  const adj=(M.vsAdj[w]||{})[id]||0;
+  const total=SCORE_DAYS.reduce((a,d)=>a+(days[d]||0),0)+adj;
+  return {days,total,adj,ent,absent,never:ent.length>0&&absent===ent.length&&!adj};
 }
 function vsWeek(){ const ws=M.vsWeeks; if(!ws.length) return null; return ws.includes(ui.vsWeek)?ui.vsWeek:ws[ws.length-1]; }
 function vsSpark(vals,labels,color){
@@ -1165,7 +1175,7 @@ function renderVS(){
   $("#vsCount").textContent=R.length+" player"+(R.length===1?"":"s");
   $("#vsList").innerHTML=R.length?R.map(r=>{
     const v=r.v, low=v.total<VS_MIN;
-    return `<li class="vrow"><div class="vtop"><span class="rk r${r.p.rank}">R${r.p.rank}</span><span class="nm">${esc(r.p.name)}${v.never?`<span class="badge warn">Not in the rankings</span>`:""}</span><span class="vtot"><b>${fmt(v.total)}</b><span class="badge ${low?"gap":"ok"}">${low?"Below "+VS_MIN+" M":"#"+pos[r.p.id]}</span></span>${vsSpark(SCORE_DAYS.concat(["Sat"]).map(d=>v.days[d]),DAYS,"var(--vs)")}</div>
+    return `<li class="vrow"><div class="vtop"><span class="rk r${r.p.rank}">R${r.p.rank}</span><span class="nm">${esc(r.p.name)}${v.never?`<span class="badge warn">Not in the rankings</span>`:""}${v.adj?`<span class="badge warn" title="Points in the in-game weekly total that are not in any daily ranking we have">incl. ${nf.format(v.adj)} M not assigned to a day</span>`:""}</span><span class="vtot"><b>${fmt(v.total)}</b><span class="badge ${low?"gap":"ok"}">${low?"Below "+VS_MIN+" M":"#"+pos[r.p.id]}</span></span>${vsSpark(SCORE_DAYS.concat(["Sat"]).map(d=>v.days[d]),DAYS,"var(--vs)")}</div>
       <div class="vdays">${DAYS.map(d=>`<span class="vd${v.days[d]==null?" off":""}" title="${d} · ${DAY_FOCUS[d]}"><i>${d}</i><b>${v.days[d]==null?"—":nf.format(v.days[d])}</b></span>`).join("")}</div></li>`;
   }).join(""):`<li class="empty">No player matches.</li>`;
 }
@@ -1197,9 +1207,18 @@ function renderRank(){
    (full?`<p class="banner ok">Mon–Fri scores are complete — these are the final changes for the week.</p>`:`<p class="banner">Provisional: Friday’s scores are not entered yet (days entered: ${ent.length?ent.join(", "):"none"}). Ranks are changed Friday evening, so use this list as a preview.</p>`)+
    `<p class="hint">Rule: Mon–Fri total below ${VS_MIN} M → R1 · top ${VS_TOP} players by total (R4 and above excluded) → R3 · everyone else → R2.${P.tie!=null?` <b>Tie at the cut-off (${fmt(P.tie)}) — check by hand.</b>`:""}</p>`+
    `<div class="rsum"><span class="s up"><b>${up.length}</b> promotion${up.length===1?"":"s"}</span><span class="s down"><b>${down.length}</b> demotion${down.length===1?"":"s"}</span><span class="s"><b>${same.length}</b> unchanged</span><span class="s"><b>${P.exempt.length}</b> R4/R5 not concerned</span></div>`+
-   `<div class="actions admin"><button class="btn primary" type="button" id="rkApplyAll"${pend?"":" disabled"}>Mark all ${pend} as done</button><button class="btn" type="button" id="rkCopy">Copy list</button></div>`+
+   `<div class="actions admin"><button class="btn primary" type="button" id="rkApplyAll"${pend?"":" disabled"}>Mark all ${pend} as done</button><button class="btn" type="button" id="rkCopy">Copy changes</button><button class="btn primary" type="button" id="rkCopyR3">Copy the R3 list</button></div>`+
    sec("Promote","up",up)+sec("Demote","down",down)+
    (same.length?`<details class="rsame"><summary>Unchanged (${same.length})</summary><ul class="rlist">${same.sort((a,b)=>b.total-a.total).map(line).join("")}</ul></details>`:"");
+}
+function r3Text(w){
+  const P=rankPlan(w), L=P.elig.filter(r=>r.to===3).sort((a,b)=>b.total-a.total||a.p.name.localeCompare(b.p.name,"en"));
+  return "R3 from tomorrow — VS week "+weekLabel(w)+" ("+L.length+" players)\n"+L.map((r,i)=>(i+1)+". "+r.p.name+" — "+nf.format(r.total)+" M").join("\n");
+}
+function copyText(t){
+  const fallback=()=>{ $("#cpText").value=t; const d=$("#dlgCopy"); if(d.showModal) d.showModal(); else d.setAttribute("open",""); setTimeout(()=>{ $("#cpText").focus(); $("#cpText").select(); },30); };
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(()=>toast("List copied."),fallback); return; } }catch(e){}
+  fallback();
 }
 function rankText(w){
   const P=rankPlan(w), chg=P.elig.filter(r=>r.to!==r.from&&!r.applied);
@@ -1247,6 +1266,8 @@ function showPage(){
 $("#btnNew").addEventListener("click",openDlg);
 document.querySelectorAll(".mainnav .navbtn").forEach(b=>b.addEventListener("click",()=>{ ui.page=b.dataset.page; showPage(); window.scrollTo(0,0); }));
 $("#btnVS").addEventListener("click",openVS);
+$("#vsCopyR3").addEventListener("click",()=>copyText(r3Text(vsWeek())));
+$("#cpClose").addEventListener("click",()=>$("#dlgCopy").close());
 $("#vCancel").addEventListener("click",()=>$("#dlgVS").close());
 $("#vSave").addEventListener("click",submitVS);
 $("#vsQ").addEventListener("input",e=>{ ui.vsQ=e.target.value; renderVS(); });
@@ -1258,7 +1279,8 @@ $("#rkBody").addEventListener("click",e=>{
   const b=e.target.closest("[data-rk]"), w=ui.rkWeek;
   if(b){ if(b.dataset.rk==="apply"){ applyRank(w,[b.dataset.id]); changed("Rank updated."); } else { undoRank(w,b.dataset.id); changed("Rank change undone."); } return; }
   if(e.target.closest("#rkApplyAll")){ const P=rankPlan(w); applyRank(w,P.elig.map(r=>r.p.id)); changed("All rank changes marked as done."); return; }
-  if(e.target.closest("#rkCopy")){ const t=rankText(w); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("List copied."),()=>toast("Copy not available here.")); }
+  if(e.target.closest("#rkCopyR3")){ copyText(r3Text(w)); return; }
+  if(e.target.closest("#rkCopy")){ copyText(rankText(w)); }
 });
 
 $("#dCancel").addEventListener("click",()=>$("#dlg").close());
