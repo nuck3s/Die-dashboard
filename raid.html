@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[DiE] · Reservoir Raid — Ops Board</title>
+<style>
+  :root{
+    --bg:#0a0d10;
+    --panel:#11161b;
+    --line:#223038;
+    --ink:#e8f1f2;
+    --muted:#8fa3ab;
+    --alpha:#4ee08a;
+    --ne:#ff6fb0;
+    --nw:#ffd23f;
+    --se:#4fb4ff;
+    --sw:#ff5c5c;
+    --gather:#b682ff;
+    --gather-dark:#1c1327;
+    --reserve:#6b7680;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Mono","Arial Narrow",monospace;
+    padding:24px;
+  }
+  h1,h2,h3{
+    font-family:"Teko","Impact","Arial Narrow",sans-serif;
+    letter-spacing:0.03em;
+    margin:0;
+  }
+  .header{
+    text-align:center;
+    margin-bottom:24px;
+    border-bottom:2px solid var(--line);
+    padding-bottom:16px;
+  }
+  .header h1{font-size:42px;color:var(--alpha);text-transform:uppercase;}
+  .header .sub{color:var(--muted);font-size:14px;margin-top:4px;}
+
+  .compass{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:28px;
+  }
+  .compass td{
+    vertical-align:top;
+    padding:8px;
+    width:33%;
+  }
+
+  .team{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:12px;
+  }
+  .team .team-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+    margin-bottom:8px;
+  }
+  .team .team-head h2{font-size:26px;text-transform:uppercase;}
+  .team .leader{font-size:12px;color:var(--muted);}
+  .team .leader b{color:var(--ink);}
+  .team ul{list-style:none;margin:0;padding:0;font-size:14px;}
+  .team ul li{
+    padding:4px 0;
+    border-bottom:1px dashed rgba(255,255,255,0.06);
+  }
+  .team ul li:last-child{border-bottom:none;}
+  .team ul li.lead::before{content:"★ ";color:inherit;}
+
+  .team.alpha{border-color:var(--alpha);} .team.alpha h2{color:var(--alpha);}
+  .team.ne{border-color:var(--ne);} .team.ne h2{color:var(--ne);}
+  .team.nw{border-color:var(--nw);} .team.nw h2{color:var(--nw);}
+  .team.se{border-color:var(--se);} .team.se h2{color:var(--se);}
+  .team.sw{border-color:var(--sw);} .team.sw h2{color:var(--sw);}
+
+  .gathering{
+    background:var(--gather-dark);
+    border:1px solid var(--gather);
+    border-radius:8px;
+    padding:16px;
+    margin-bottom:28px;
+  }
+  .gathering h2{color:var(--gather);font-size:28px;text-transform:uppercase;margin-bottom:12px;}
+  .duo-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .duo-card{
+    flex:1 1 180px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(182,130,255,0.3);
+    border-radius:6px;
+    padding:10px 12px;
+    font-size:13px;
+  }
+  .duo-card .zone{color:var(--gather);font-weight:bold;font-size:12px;text-transform:uppercase;margin-bottom:6px;}
+  .duo-card .role{color:var(--muted);font-size:11px;}
+
+  .reservists{
+    background:var(--panel);
+    border:1px solid var(--reserve);
+    border-radius:8px;
+    padding:14px 16px;
+  }
+  .reservists h2{color:var(--reserve);font-size:22px;text-transform:uppercase;margin-bottom:10px;}
+  .reserve-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .reserve-grid span{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:4px 10px;
+    font-size:13px;
+    color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Reservoir Raid — Ops Board</h1>
+  <div class="sub">[DiE] Alliance · Composition hebdomadaire</div>
+</div>
+
+<table class="compass">
+  <tr>
+    <td>
+      <div class="team nw">
+        <div class="team-head">
+          <h2>NW</h2>
+          <span class="leader">Leader: <b>Nuckes</b></span>
+        </div>
+        <ul>
+          <li class="lead">Nuckes</li>
+          <li>Sneak</li>
+          <li>Kirke the Doom</li>
+          <li>Møñå</li>
+        </ul>
+      </div>
+      <div class="team sw">
+        <div class="team-head">
+          <h2>SW</h2>
+          <span class="leader">Leader: <b>Moon Redfield</b></span>
+        </div>
+        <ul>
+          <li class="lead">Moon Redfield</li>
+          <li>Luz</li>
+          <li>++Tequila</li>
+          <li>Totoro</li>
+          <li>apoLLo</li>
+          <li>Flower of TheEnd</li>
+        </ul>
+      </div>
+    </td>
+    <td>
+      <div class="team alpha">
+        <div class="team-head">
+          <h2>Alpha</h2>
+          <span class="leader">Leader: <b>Drako</b></span>
+        </div>
+        <ul>
+          <li class="lead">Drako</li>
+          <li>Super Dragon</li>
+          <li>Raveneyes</li>
+          <li>Tekkno</li>
+        </ul>
+      </div>
+    </td>
+    <td>
+      <div class="team ne">
+        <div class="team-head">
+          <h2>NE</h2>
+          <span class="leader">Leader: <b>Julie</b></span>
+        </div>
+        <ul>
+          <li class="lead">Julie</li>
+          <li>Lia®DeadBunny</li>
+          <li>BEER</li>
+          <li>silver mouse</li>
+          <li>Wolfie</li>
+        </ul>
+      </div>
+      <div class="team se">
+        <div class="team-head">
+          <h2>SE</h2>
+          <span class="leader">Leader: <b>Marik</b></span>
+        </div>
+        <ul>
+          <li class="lead">Marik</li>
+          <li>full squirrel</li>
+          <li>FraG</li>
+          <li>Jey</li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div class="gathering">
+  <h2>Gathering — Leader: Dead Frog</h2>
+  <div class="duo-grid">
+    <div class="duo-card">
+      <div class="zone">North</div>
+      Dead Frog <span class="role">(Defender)</span><br>
+      KaKtUs <span class="role">(Gatherer)</span>
+    </div>
+    <div class="duo-card">
+      <div class="zone">South</div>
+      xyzzy <span class="role">(Defender)</span><br>
+      Bonbona <span class="role">(Gatherer)</span>
+    </div>
+    <div class="duo-card">
+      <div class="zone">East</div>
+      Armageddon's Cow <span class="role">(Defender)</span><br>
+      Hermione Granger <span class="role">(Gatherer)</span>
+    </div>
+    <div class="duo-card">
+      <div class="zone">West</div>
+      Ancient One <span class="role">(Defender)</span><br>
+      xOxOx <span class="role">(Gatherer)</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
