@@ -41,6 +41,8 @@
   }
   .header h1{font-size:42px;color:var(--alpha);text-transform:uppercase;}
   .header .sub{color:var(--muted);font-size:14px;margin-top:4px;}
+  .header .grand{color:var(--ink);font-size:16px;margin-top:10px;}
+  .header .grand b{color:var(--alpha);}
 
   .compass{
     width:100%;
@@ -69,15 +71,28 @@
     margin-bottom:8px;
   }
   .team .team-head h2{font-size:26px;text-transform:uppercase;}
-  .team .leader{font-size:12px;color:var(--muted);}
+  .team .leader{font-size:12px;color:var(--muted);text-align:right;}
   .team .leader b{color:var(--ink);}
+  .team .buildings{font-size:11px;color:var(--muted);margin-bottom:8px;font-style:italic;}
   .team ul{list-style:none;margin:0;padding:0;font-size:14px;}
   .team ul li{
+    display:flex;
+    justify-content:space-between;
     padding:4px 0;
     border-bottom:1px dashed rgba(255,255,255,0.06);
   }
   .team ul li:last-child{border-bottom:none;}
-  .team ul li.lead::before{content:"★ ";color:inherit;}
+  .team ul li.lead .name::before{content:"★ ";}
+  .team ul li .score{color:var(--muted);}
+  .team .team-total{
+    margin-top:8px;
+    padding-top:6px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--muted);
+    text-align:right;
+  }
+  .team .team-total b{color:var(--ink);}
 
   .team.alpha{border-color:var(--alpha);} .team.alpha h2{color:var(--alpha);}
   .team.ne{border-color:var(--ne);} .team.ne h2{color:var(--ne);}
@@ -92,11 +107,20 @@
     padding:16px;
     margin-bottom:28px;
   }
-  .gathering h2{color:var(--gather);font-size:28px;text-transform:uppercase;margin-bottom:12px;}
+  .gathering .gather-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:12px;
+  }
+  .gathering h2{color:var(--gather);font-size:28px;text-transform:uppercase;}
+  .gathering .leader{font-size:12px;color:var(--muted);}
+  .gathering .leader b{color:var(--ink);}
   .duo-grid{
     display:flex;
     flex-wrap:wrap;
     gap:12px;
+    margin-bottom:10px;
   }
   .duo-card{
     flex:1 1 180px;
@@ -108,6 +132,15 @@
   }
   .duo-card .zone{color:var(--gather);font-weight:bold;font-size:12px;text-transform:uppercase;margin-bottom:6px;}
   .duo-card .role{color:var(--muted);font-size:11px;}
+  .duo-card .score{color:var(--muted);float:right;}
+  .gathering .gather-total{
+    text-align:right;
+    font-size:12px;
+    color:var(--muted);
+    border-top:1px solid rgba(182,130,255,0.3);
+    padding-top:6px;
+  }
+  .gathering .gather-total b{color:var(--ink);}
 
   .reservists{
     background:var(--panel);
@@ -129,6 +162,7 @@
     font-size:13px;
     color:var(--muted);
   }
+  .reserve-grid span b{color:var(--ink);font-weight:normal;}
 </style>
 </head>
 <body>
@@ -136,6 +170,7 @@
 <div class="header">
   <h1>Reservoir Raid — Ops Board</h1>
   <div class="sub">[DiE] Alliance · Composition hebdomadaire</div>
+  <div class="grand">Grand total (30 joueurs) : <b>2,316.06M</b></div>
 </div>
 
 <table class="compass">
@@ -146,26 +181,29 @@
           <h2>NW</h2>
           <span class="leader">Leader: <b>Nuckes</b></span>
         </div>
+        <div class="buildings">Solar Power Station + Water Process 3</div>
         <ul>
-          <li class="lead">Nuckes</li>
-          <li>Sneak</li>
-          <li>Kirke the Doom</li>
-          <li>Møñå</li>
+          <li class="lead"><span class="name">nuckes</span><span class="score">83.01M</span></li>
+          <li><span class="name">Sneak</span><span class="score">75.33M</span></li>
+          <li><span class="name">Kirke the Doom</span><span class="score">68.99M</span></li>
+          <li><span class="name">Møñå</span><span class="score">62.04M</span></li>
         </ul>
+        <div class="team-total">Total : <b>289.37M</b></div>
       </div>
       <div class="team sw">
         <div class="team-head">
           <h2>SW</h2>
-          <span class="leader">Leader: <b>Moon Redfield</b></span>
+          <span class="leader">Leader: <b>Moon</b></span>
         </div>
+        <div class="buildings">Treatment Plant 1 + Water Process 1</div>
         <ul>
-          <li class="lead">Moon Redfield</li>
-          <li>Luz</li>
-          <li>++Tequila</li>
-          <li>Totoro</li>
-          <li>apoLLo</li>
-          <li>Flower of TheEnd</li>
+          <li class="lead"><span class="name">Moon Redfield</span><span class="score">66.30M</span></li>
+          <li><span class="name">Luz ++Tequila</span><span class="score">80.16M</span></li>
+          <li><span class="name">Totoro</span><span class="score">68.03M</span></li>
+          <li><span class="name">apoLLo</span><span class="score">65.08M</span></li>
+          <li><span class="name">Flower of TheEnd</span><span class="score">59.88M</span></li>
         </ul>
+        <div class="team-total">Total : <b>339.45M</b></div>
       </div>
     </td>
     <td>
@@ -174,12 +212,14 @@
           <h2>Alpha</h2>
           <span class="leader">Leader: <b>Drako</b></span>
         </div>
+        <div class="buildings">Central Reservoir + Dev Compound + Munitions Factory</div>
         <ul>
-          <li class="lead">Drako</li>
-          <li>Super Dragon</li>
-          <li>Raveneyes</li>
-          <li>Tekkno</li>
+          <li class="lead"><span class="name">Drako Noctis</span><span class="score">74.80M</span></li>
+          <li><span class="name">Super Dragon</span><span class="score">136.70M</span></li>
+          <li><span class="name">Raveneyes</span><span class="score">133.76M</span></li>
+          <li><span class="name">Tekkno</span><span class="score">115.40M</span></li>
         </ul>
+        <div class="team-total">Total : <b>460.66M</b></div>
       </div>
     </td>
     <td>
@@ -188,53 +228,77 @@
           <h2>NE</h2>
           <span class="leader">Leader: <b>Julie</b></span>
         </div>
+        <div class="buildings">Treatment Plant 2 + Water Process 2</div>
         <ul>
-          <li class="lead">Julie</li>
-          <li>Lia®DeadBunny</li>
-          <li>BEER</li>
-          <li>silver mouse</li>
-          <li>Wolfie</li>
+          <li class="lead"><span class="name">Julie</span><span class="score">112.36M</span></li>
+          <li><span class="name">Lia®DeadBunny</span><span class="score">76.50M</span></li>
+          <li><span class="name">BEER</span><span class="score">66.01M</span></li>
+          <li><span class="name">silver mouse</span><span class="score">66.01M</span></li>
+          <li><span class="name">Wolfie</span><span class="score">60.38M</span></li>
         </ul>
+        <div class="team-total">Total : <b>381.26M</b></div>
       </div>
       <div class="team se">
         <div class="team-head">
           <h2>SE</h2>
           <span class="leader">Leader: <b>Marik</b></span>
         </div>
+        <div class="buildings">Water Process 4 + Abandoned Helipad</div>
         <ul>
-          <li class="lead">Marik</li>
-          <li>full squirrel</li>
-          <li>FraG</li>
-          <li>Jey</li>
+          <li class="lead"><span class="name">Marik</span><span class="score">81.02M</span></li>
+          <li><span class="name">full squirrel</span><span class="score">75.07M</span></li>
+          <li><span class="name">FraG</span><span class="score">71.51M</span></li>
+          <li><span class="name">Jey</span><span class="score">61.80M</span></li>
         </ul>
+        <div class="team-total">Total : <b>289.40M</b></div>
       </div>
     </td>
   </tr>
 </table>
 
 <div class="gathering">
-  <h2>Gathering — Leader: Dead Frog</h2>
+  <div class="gather-head">
+    <h2>Gathering — Water Tanks</h2>
+    <span class="leader">Leader: <b>Dead Frog</b></span>
+  </div>
   <div class="duo-grid">
     <div class="duo-card">
       <div class="zone">North</div>
-      Dead Frog <span class="role">(Defender)</span><br>
-      KaKtUs <span class="role">(Gatherer)</span>
+      Dead Frog <span class="role">(Defender)</span><span class="score">76.26M</span><br>
+      KaKtUs <span class="role">(Gatherer)</span><span class="score">55.12M</span>
     </div>
     <div class="duo-card">
       <div class="zone">South</div>
-      xyzzy <span class="role">(Defender)</span><br>
-      Bonbona <span class="role">(Gatherer)</span>
+      xyzzy <span class="role">(Defender)</span><span class="score">110.18M</span><br>
+      Bonbona <span class="role">(Gatherer)</span><span class="score">46.01M</span>
     </div>
     <div class="duo-card">
       <div class="zone">East</div>
-      Armageddon's Cow <span class="role">(Defender)</span><br>
-      Hermione Granger <span class="role">(Gatherer)</span>
+      Armageddon's Cow <span class="role">(Defender)</span><span class="score">104.25M</span><br>
+      Hermione Granger <span class="role">(Gatherer)</span><span class="score">40.49M</span>
     </div>
     <div class="duo-card">
       <div class="zone">West</div>
-      Ancient One <span class="role">(Defender)</span><br>
-      xOxOx <span class="role">(Gatherer)</span>
+      Ancient One <span class="role">(Defender)</span><span class="score">84.95M</span><br>
+      xOxOx <span class="role">(Gatherer)</span><span class="score">38.66M</span>
     </div>
+  </div>
+  <div class="gather-total">Total : <b>555.92M</b></div>
+</div>
+
+<div class="reservists">
+  <h2>Réservistes (10)</h2>
+  <div class="reserve-grid">
+    <span>Gallus <b>68.84M</b></span>
+    <span>Ponds <b>68.89M</b></span>
+    <span>Ratul <b>46.09M</b></span>
+    <span>Kitsune Fox <b>57.69M</b></span>
+    <span>Sky Drågø <b>67.26M</b></span>
+    <span>Per$iano <b>49.82M</b></span>
+    <span>Axiom <b>53.00M</b></span>
+    <span>Yoko без Lessing <b>71.49M</b></span>
+    <span>NoHope <b>79.68M</b></span>
+    <span>CRACK <b>67.21M</b></span>
   </div>
 </div>
 
