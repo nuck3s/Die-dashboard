@@ -162,9 +162,10 @@ h3.rsec.up{color:var(--up)}h3.rsec.down{color:var(--down)}
 .rrow .rchg{display:flex;gap:6px;align-items:center}
 .rrow .rk{padding:5px 8px}
 .rrow .rtot{grid-column:1/2;font-size:14px}
-.rrow>.btn{grid-column:2/3;grid-row:2}
+.rrow>.btn,.rrow>.racts{grid-column:2/3;grid-row:2}
+.racts{display:flex;gap:6px;justify-content:flex-end;align-items:center}
 .rrow.done{opacity:.6}
-@media(min-width:720px){.rrow{grid-template-columns:minmax(150px,1.3fr) auto 1.5fr auto}.rrow .rtot{grid-column:auto}.rrow>.btn{grid-column:auto;grid-row:auto}}
+@media(min-width:720px){.rrow{grid-template-columns:minmax(150px,1.3fr) auto 1.5fr auto}.rrow .rtot{grid-column:auto}.rrow>.btn,.rrow>.racts{grid-column:auto;grid-row:auto}}
 .rk.r3{border-color:var(--htp);color:var(--htp)}
 .rsame summary{cursor:pointer;margin:14px 0 8px;font-weight:650}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -816,7 +817,7 @@ const EXTRA_SNAPS = [
 EXTRA_SNAPS.forEach(x=>{ baseSnaps[x.d]=baseSnaps[x.d]||{power:{},htp:{}}; x.rows.forEach(r=>{ const id=nameToId[r[0]]; if(!id){ console.warn("Unknown snapshot name",r[0]); return; } baseSnaps[x.d][x.k][id]=r[1]; }); });
 
 
-let user = {snaps:{}, merges:{}, extra:[], vs:{}, ranks:{}, rankLog:{}};   // ce que l'utilisateur ajoute
+let user = {snaps:{}, merges:{}, extra:[], vs:{}, ranks:{}, rankLog:{}, ignored:{}};   // ce que l'utilisateur ajoute
 let ui = {q:"", rank:0, sort:"power", gap:"off", gapN:20, view:"latest", cmp:"prev", open:null, page:"players", vsQ:"", vsRank:0, vsSort:"total", vsWeek:null, rkWeek:null};
 let M = null; // modèle calculé
 let db = null, dbRef = null, downloads = null, saveTimer = null, saveChain = Promise.resolve();
@@ -1038,8 +1039,8 @@ function detailHtml(r){
 }
 
 /* ---------- Données : sauvegarde ---------- */
-function serialize(){ return {v:2,snaps:user.snaps||{},merges:user.merges||{},extra:user.extra||[],vs:user.vs||{},ranks:user.ranks||{},rankLog:user.rankLog||{}}; }
-function normalizeUser(d){ return {snaps:(d&&d.snaps)||{},merges:(d&&d.merges)||{},extra:(d&&d.extra)||[],vs:(d&&d.vs)||{},ranks:(d&&d.ranks)||{},rankLog:(d&&d.rankLog)||{}}; }
+function serialize(){ return {v:2,snaps:user.snaps||{},merges:user.merges||{},extra:user.extra||[],vs:user.vs||{},ranks:user.ranks||{},rankLog:user.rankLog||{},ignored:user.ignored||{}}; }
+function normalizeUser(d){ return {snaps:(d&&d.snaps)||{},merges:(d&&d.merges)||{},extra:(d&&d.extra)||[],vs:(d&&d.vs)||{},ranks:(d&&d.ranks)||{},rankLog:(d&&d.rankLog)||{},ignored:(d&&d.ignored)||{}}; }
 function writeLocal(){ try{ localStorage.setItem("die-tracker-v1",JSON.stringify(serialize())); }catch(e){} }
 function readLocal(){ try{ const s=localStorage.getItem("die-tracker-v1"); return s?normalizeUser(JSON.parse(s)):null; }catch(e){ return null; } }
 function persist(){
@@ -1120,6 +1121,8 @@ const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat"];
 const SCORE_DAYS = ["Mon","Tue","Wed","Thu","Fri"];   // Saturday (battle) is not part of the rank rule
 const DAY_FOCUS = {Mon:"Intel & Gears",Tue:"Construction & Pets",Wed:"Research & Behemoth",Thu:"Hero upgrade",Fri:"Troops, research & construction",Sat:"Battle vs opponent alliance"};
 const VS_MIN = 50, VS_TOP = 30;
+const BASE_IGNORED = ["Justice"];   // secondary accounts (Justice = Marik's second account): left out of the rank ranking
+function isIgnored(id){ const u=user.ignored||{}; if(u[id]!==undefined) return !!u[id]; return BASE_IGNORED.some(n=>nameToId[n]&&M.resolve(nameToId[n])===id); }
 const baseVS = {};
 Object.keys(VS_BASE).forEach(w=>{ baseVS[w]={}; DAYS.forEach(d=>{ baseVS[w][d]={}; (VS_BASE[w][d]||[]).forEach(r=>{ const id=nameToId[r[0]]; if(!id){ console.warn("Unknown VS name",r[0]); return; } baseVS[w][d][id]=r[1]; }); }); });
 function addDays(iso,n){ const d=new Date(iso+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
@@ -1194,12 +1197,13 @@ function renderVS(){
 function rankPlan(w){
   const log=Object.assign({},(M.baseLog||{})[w]||{},((user.rankLog||{})[w])||{});
   const rows=M.visible.map(p=>{ const v=vsPlayer(w,p.id); const lg=log[p.id]; return {p,v,total:v.total,from:lg?lg.from:p.rank,applied:!!lg,base:!!(lg&&lg.base),actual:lg?lg.to:null}; });
-  const elig=rows.filter(r=>r.from<=3);
+  rows.forEach(r=>{ r.ign=isIgnored(r.p.id); });
+  const elig=rows.filter(r=>r.from<=3&&!r.ign), ignored=rows.filter(r=>r.from<=3&&r.ign);
   const ranked=elig.filter(r=>r.total>=VS_MIN).sort((a,b)=>b.total-a.total||a.p.name.localeCompare(b.p.name,"en"));
   ranked.forEach((r,i)=>{ r.pos=i+1; });
   elig.forEach(r=>{ r.to=r.total<VS_MIN?1:(r.pos<=VS_TOP?3:2); if(r.applied&&r.actual!=null) r.to=r.actual; if(M.baseLog&&M.baseLog[w]&&!r.applied&&r.to!==r.from){ r.diff=r.to; r.to=r.from; } r.reason=r.total<VS_MIN?"Below "+VS_MIN+" M":(r.pos<=VS_TOP?"Top "+VS_TOP+" (#"+r.pos+")":"Outside top "+VS_TOP+" (#"+r.pos+")"); });
   const tie=ranked.length>VS_TOP&&Math.abs(ranked[VS_TOP-1].total-ranked[VS_TOP].total)<1e-9?ranked[VS_TOP-1].total:null;
-  return {rows,elig,exempt:rows.filter(r=>r.from>3),tie};
+  return {rows,elig,ignored,exempt:rows.filter(r=>r.from>3),tie};
 }
 function renderRank(){
   const box=$("#rkBody"); const w=ui.rkWeek&&M.vsWeeks.includes(ui.rkWeek)?ui.rkWeek:M.vsWeeks[M.vsWeeks.length-1];
@@ -1212,14 +1216,16 @@ function renderRank(){
   const chg=P.elig.filter(r=>r.to!==r.from), same=P.elig.filter(r=>r.to===r.from);
   const up=chg.filter(r=>r.to>r.from).sort((a,b)=>b.total-a.total), down=chg.filter(r=>r.to<r.from).sort((a,b)=>a.total-b.total);
   const pend=chg.filter(r=>!r.applied).length;
-  const line=r=>`<li class="rrow${r.applied?" done":""}"><span class="nm">${esc(r.p.name)}${r.v.never?`<span class="badge warn">Not in the rankings</span>`:""}</span><span class="rchg"><span class="rk r${r.from}">R${r.from}</span><span aria-hidden="true">→</span><span class="rk r${r.to}">R${r.to}</span></span><span class="rtot"><b>${fmt(r.total)}</b><span class="muted"> · ${esc(r.reason)}${r.diff?" · rule says R"+r.diff+", kept R"+r.from+" in game":""}</span></span>${r.to!==r.from?(r.base?`<span class="muted">Applied ✓</span>`:r.applied?`<button class="btn ghost admin" type="button" data-rk="undo" data-id="${r.p.id}">Undo ✓</button>`:`<button class="btn admin" type="button" data-rk="apply" data-id="${r.p.id}">Mark done</button>`):`<span></span>`}</li>`;
+  const line=r=>`<li class="rrow${r.applied?" done":""}"><span class="nm">${esc(r.p.name)}${r.v.never?`<span class="badge warn">Not in the rankings</span>`:""}</span><span class="rchg"><span class="rk r${r.from}">R${r.from}</span><span aria-hidden="true">→</span><span class="rk r${r.to}">R${r.to}</span></span><span class="rtot"><b>${fmt(r.total)}</b><span class="muted"> · ${esc(r.reason)}${r.diff?" · rule says R"+r.diff+", kept R"+r.from+" in game":""}</span></span><span class="racts">${r.to!==r.from?(r.base?`<span class="muted">Applied ✓</span>`:r.applied?`<button class="btn ghost admin" type="button" data-rk="undo" data-id="${r.p.id}">Undo ✓</button>`:`<button class="btn admin" type="button" data-rk="apply" data-id="${r.p.id}">Mark done</button>`):``}<button class="btn ghost admin" type="button" data-rk="ign" data-id="${r.p.id}" title="Secondary account: leave out of the ranking">Ignore</button></span></li>`;
+  const lineIgn=r=>`<li class="rrow"><span class="nm">${esc(r.p.name)}</span><span class="rchg"><span class="rk r${r.from}">R${r.from}</span><span class="muted">stays</span></span><span class="rtot"><b>${fmt(r.total)}</b><span class="muted"> · secondary account — not ranked, rank unchanged</span></span><span class="racts"><button class="btn ghost admin" type="button" data-rk="unign" data-id="${r.p.id}">Include again</button></span></li>`;
   const sec=(t,cls,L)=>L.length?`<h3 class="rsec ${cls}">${t} <span class="muted">(${L.length})</span></h3><ul class="rlist">${L.map(line).join("")}</ul>`:"";
   box.innerHTML=
    (full?`<p class="banner ok">Mon–Fri scores are complete — these are the final changes for the week.</p>`:`<p class="banner">Provisional: Friday’s scores are not entered yet (days entered: ${ent.length?ent.join(", "):"none"}). Ranks are changed Friday evening, so use this list as a preview.</p>`)+
-   `<p class="hint">Rule: Mon–Fri total below ${VS_MIN} M → R1 · top ${VS_TOP} players by total (R4 and above excluded) → R3 · everyone else → R2.${P.tie!=null?` <b>Tie at the cut-off (${fmt(P.tie)}) — check by hand.</b>`:""}</p>`+
-   `<div class="rsum"><span class="s up"><b>${up.length}</b> promotion${up.length===1?"":"s"}</span><span class="s down"><b>${down.length}</b> demotion${down.length===1?"":"s"}</span><span class="s"><b>${same.length}</b> unchanged</span><span class="s"><b>${P.exempt.length}</b> R4/R5 not concerned</span></div>`+
+   `<p class="hint">Rule: Mon–Fri total below ${VS_MIN} M → R1 · top ${VS_TOP} players by total (R4 and above and ignored secondary accounts excluded) → R3 · everyone else → R2.${P.tie!=null?` <b>Tie at the cut-off (${fmt(P.tie)}) — check by hand.</b>`:""}</p>`+
+   `<div class="rsum"><span class="s up"><b>${up.length}</b> promotion${up.length===1?"":"s"}</span><span class="s down"><b>${down.length}</b> demotion${down.length===1?"":"s"}</span><span class="s"><b>${same.length}</b> unchanged</span><span class="s"><b>${P.exempt.length}</b> R4/R5 not concerned</span>${P.ignored.length?`<span class="s"><b>${P.ignored.length}</b> ignored</span>`:""}</div>`+
    `<div class="actions admin"><button class="btn primary" type="button" id="rkApplyAll"${pend?"":" disabled"}>Mark all ${pend} as done</button><button class="btn" type="button" id="rkCopy">Copy changes</button><button class="btn primary" type="button" id="rkCopyR3">Copy the R3 list</button></div>`+
    sec("Promote","up",up)+sec("Demote","down",down)+
+   (P.ignored.length?`<h3 class="rsec">Ignored accounts <span class="muted">(${P.ignored.length})</span></h3><ul class="rlist">${P.ignored.map(lineIgn).join("")}</ul>`:"")+
    (same.length?`<details class="rsame"><summary>Unchanged (${same.length})</summary><ul class="rlist">${same.sort((a,b)=>b.total-a.total).map(line).join("")}</ul></details>`:"");
 }
 function r3Text(w){
@@ -1288,7 +1294,9 @@ $("#vsChips").addEventListener("click",e=>{ const b=e.target.closest(".chip"); i
 $("#rkWeek").addEventListener("change",e=>{ ui.rkWeek=e.target.value; renderRank(); });
 $("#rkBody").addEventListener("click",e=>{
   const b=e.target.closest("[data-rk]"), w=ui.rkWeek;
+  if(b&&(b.dataset.rk==="ign"||b.dataset.rk==="unign")){ user.ignored=user.ignored||{}; user.ignored[b.dataset.id]=b.dataset.rk==="ign"; changed(b.dataset.rk==="ign"?"Account ignored in the ranking.":"Account included in the ranking again."); return; }
   if(b){ if(b.dataset.rk==="apply"){ applyRank(w,[b.dataset.id]); changed("Rank updated."); } else { undoRank(w,b.dataset.id); changed("Rank change undone."); } return; }
+  if(b&&false){}
   if(e.target.closest("#rkApplyAll")){ const P=rankPlan(w); applyRank(w,P.elig.map(r=>r.p.id)); changed("All rank changes marked as done."); return; }
   if(e.target.closest("#rkCopyR3")){ copyText(r3Text(w)); return; }
   if(e.target.closest("#rkCopy")){ copyText(rankText(w)); }
@@ -1361,7 +1369,7 @@ touch(); render();
       dbRef.onSnapshot(snap=>{
         if(snap.metadata&&snap.metadata.hasPendingWrites) return;
         if(snap.exists){ user=normalizeUser(snap.data()); writeLocal(); touch(); render(); }
-        else if(local && (Object.keys(local.snaps).length||local.extra.length||Object.keys(local.merges).length||Object.keys(local.vs).length||Object.keys(local.ranks).length)){ persist(); }
+        else if(local && (Object.keys(local.snaps).length||local.extra.length||Object.keys(local.merges).length||Object.keys(local.vs).length||Object.keys(local.ranks).length||Object.keys(local.ignored).length)){ persist(); }
       },()=>{});
     }
   }catch(e){}
