@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DiE · Bonus Marks</title>
+<style>
+:root{--bg:#f6f7f9;--surface:#fff;--surface-2:#f2f4f7;--line:#e4e7ec;--ink:#101828;--muted:#667085;--research:#2563eb;--research-soft:#eaf1fe;--construction:#d97706;--construction-soft:#fdf3e2;--late:#dc2626;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:20px 16px 48px}
+.app{max-width:1000px;margin:0 auto}
+h1{margin:0;font-size:28px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
+header p{margin:4px 0 16px;color:var(--muted)}
+.tabs{display:inline-flex;gap:2px;padding:3px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;margin-bottom:16px}
+.tab{background:none;border:0;border-radius:6px;padding:7px 14px;font:600 14px system-ui;color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{color:var(--ink);background:var(--surface);box-shadow:0 1px 2px rgba(16,24,40,.08)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.t-research{--accent:var(--research);--accent-soft:var(--research-soft)}
+.t-construction{--accent:var(--construction);--accent-soft:var(--construction-soft)}
+h2{margin:0 0 12px;font-size:18px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+h3{margin:18px 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.slot{padding:12px 0;border-top:1px solid var(--line)}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.no{font-size:12px;color:var(--muted);min-width:52px}
+.pname{font-weight:700;font-size:16px;overflow-wrap:anywhere}
+.status{margin-left:auto;font-weight:600;font-size:12px;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.status.soon{background:#fef3c7;color:#92400e}.status.late{background:#fee2e2;color:var(--late)}
+.bar{height:4px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.free{color:var(--muted);font-style:italic}
+.rank{font-size:11px;font-weight:600;padding:1px 7px;border-radius:99px;color:var(--muted);background:var(--surface-2)}
+.rank.r5{background:var(--ink);color:#fff}.rank.r4{color:var(--ink);background:#e4e7ec}
+.q{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:8px 0;border-top:1px solid var(--line)}
+.q .n{width:20px;color:var(--muted)}.q .m{margin-left:auto;color:var(--muted)}
+.empty{color:var(--muted);padding:8px 0}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}th{background:var(--surface-2);font-size:12px;color:var(--muted)}
+.wrap{overflow-x:auto}
+footer{margin-top:20px;color:var(--muted);font-size:12px}
+[hidden]{display:none!important}
+</style></head><body><div class="app">
+<header><h1>Bonus Marks</h1><p>[DiE] Who holds the research and construction marks, and who is next.</p></header>
+<div class="tabs"><button class="tab" data-tab="board" aria-selected="true">Board</button><button class="tab" data-tab="history" aria-selected="false">History</button></div>
+<div id="board" class="grid"></div>
+<div id="history" class="wrap" hidden></div>
+<footer>Read-only view · data refreshed hourly (last sync 30 Oct 2026, 21:57 Paris time) · remaining times update live.</footer>
+</div>
+<script>
+const DATA={"slots":{"research":2,"construction":2},"marks":[{"t":"research","n":"Raveneyes","r":4,"d":3,"s":1793314800000,"e":1793314800000},{"t":"research","n":"Raveneyes","r":4,"d":10,"s":1793354640000,"e":1793314800000},{"t":"research","n":"Kai Kim☆","r":3,"d":28,"s":1793354700000,"e":1793314800000},{"t":"research","n":"apoLLo","r":3,"d":60,"s":1793379840000,"e":1793314800000},{"t":"research","n":"Hello_ITTY_win","r":2,"d":80,"s":1793389320000,"e":null},{"t":"research","n":"Trick or Kirke ♡","r":4,"d":67,"s":1793389320000,"e":null}],"queue":[{"t":"research","n":"Juju says SHIELD","r":4,"d":91},{"t":"research","n":"Per$iano","r":3,"d":80},{"t":"research","n":"Vestnik","r":3,"d":84},{"t":"research","n":"Wolfie","r":3,"d":80},{"t":"research","n":"Космос","r":3,"d":80}]};
+const LABEL={research:"Research",construction:"Construction"},esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dur=h=>{h=Math.max(0,Math.round(h));const d=Math.floor(h/24),r=h%24;return d?d+" d"+(r?" "+r+" h":""):r+" h"};
+const chip=r=>r?'<span class="rank r'+r+'">R'+r+'</span>':"";
+const fmt=ms=>new Date(ms).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"Europe/Paris"});
+function board(){const now=Date.now();document.getElementById("board").innerHTML=["research","construction"].map(t=>{
+ const act=DATA.marks.filter(m=>m.t===t&&m.e==null),q=DATA.queue.filter(x=>x.t===t);let h="";
+ for(let i=0;i<DATA.slots[t];i++){const m=act[i];
+  if(!m){h+='<div class="slot"><div class="top"><span class="no">Mark '+(i+1)+'</span><span class="free">Free</span></div></div>';continue}
+  const due=m.s+m.d*864e5,left=(due-now)/36e5,el=(now-m.s)/36e5;let lab,cls="";
+  if(el<0)lab="Starts in "+dur(-el);else if(left<0){lab="Overdue "+dur(-left);cls=" late"}else{lab=dur(left)+" left";if(left<24)cls=" soon"}
+  const pct=Math.min(100,Math.max(0,Math.round(el/(m.d*24)*100)));
+  h+='<div class="slot"><div class="top"><span class="no">Mark '+(i+1)+'</span><span class="pname">'+esc(m.n)+'</span>'+chip(m.r)+'<span class="status'+cls+'">'+lab+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>'}
+ h+='<h3>Queue</h3>'+(q.length?q.map((x,i)=>'<div class="q"><span class="n">'+(i+1)+'</span><span class="pname">'+esc(x.n)+'</span>'+chip(x.r)+'<span class="m">'+x.d+' d</span></div>').join(""):'<div class="empty">Nobody is waiting.</div>');
+ return '<section class="panel t-'+t+'"><h2>'+LABEL[t]+'</h2>'+h+'</section>'}).join("")}
+function hist(){const done=DATA.marks.filter(m=>m.e!=null).sort((a,b)=>b.e-a.e);
+ document.getElementById("history").innerHTML=done.length?'<table><thead><tr><th>Player</th><th>Bonus</th><th>From</th><th>To</th><th>Days</th></tr></thead><tbody>'+done.map(m=>'<tr><td>'+esc(m.n)+'</td><td>'+LABEL[m.t]+'</td><td>'+fmt(m.s)+'</td><td>'+fmt(m.e)+'</td><td>'+Math.max(0,Math.round((m.e-m.s)/864e5))+'</td></tr>').join("")+'</tbody></table>':'<p class="empty">No past marks yet.</p>'}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===b));document.getElementById("board").hidden=b.dataset.tab!=="board";document.getElementById("history").hidden=b.dataset.tab!=="history"});
+board();hist();setInterval(board,60000);
+</script></body></html>
