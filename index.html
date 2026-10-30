@@ -1136,7 +1136,7 @@ const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat"];
 const SCORE_DAYS = ["Mon","Tue","Wed","Thu","Fri"];   // Saturday (battle) is not part of the rank rule
 const DAY_FOCUS = {Mon:"Intel & Gears",Tue:"Construction & Pets",Wed:"Research & Behemoth",Thu:"Hero upgrade",Fri:"Troops, research & construction",Sat:"Battle vs opponent alliance"};
 const VS_MIN = 50, VS_TOP = 30;
-const BASE_IGNORED = ["Justice"];   // secondary accounts (Justice = Marik's second account): left out of the rank ranking
+const BASE_IGNORED = ["Justice","no stacy"];   // secondary accounts (Justice = Marik's second account): left out of the rank ranking
 function isIgnored(id){ const u=user.ignored||{}; if(u[id]!==undefined) return !!u[id]; return BASE_IGNORED.some(n=>nameToId[n]&&M.resolve(nameToId[n])===id); }
 const baseVS = {};
 Object.keys(VS_BASE).forEach(w=>{ baseVS[w]={}; DAYS.forEach(d=>{ baseVS[w][d]={}; (VS_BASE[w][d]||[]).forEach(r=>{ const id=nameToId[r[0]]; if(!id){ console.warn("Unknown VS name",r[0]); return; } baseVS[w][d][id]=r[1]; }); }); });
